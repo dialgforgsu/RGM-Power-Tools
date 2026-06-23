@@ -1,4 +1,4 @@
-import { MonitorToolError } from '@redgate-power-tools/core';
+import { MonitorToolError } from '@rgm-power-tools/core';
 import type { AlertsConfig, ConfigFile, GroupConfig } from './schema.js';
 
 /** Raised for semantic problems the Zod schema can't express (bad refs, cycles). */

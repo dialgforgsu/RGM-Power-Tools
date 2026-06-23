@@ -1,4 +1,4 @@
-import { MonitorToolError } from '@redgate-power-tools/core';
+import { MonitorToolError } from '@rgm-power-tools/core';
 
 /** One schema problem, tied back to a line in the source YAML where possible. */
 export interface ValidationIssue {

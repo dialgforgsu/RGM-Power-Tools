@@ -5,7 +5,7 @@ import {
   MockMonitorClient,
   type MonitorClient,
   type MonitoredObject,
-} from '@redgate-power-tools/core';
+} from '@rgm-power-tools/core';
 import type { CliIO } from '../src/io.js';
 
 export interface FakeIOResult {

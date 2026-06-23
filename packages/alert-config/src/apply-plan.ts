@@ -1,4 +1,4 @@
-import type { MonitorClient } from '@redgate-power-tools/core';
+import type { MonitorClient } from '@rgm-power-tools/core';
 import { resolveConfig } from './resolve.js';
 import { ALERT_NAMES, type AlertName, type ConfigFile } from './schema.js';
 import {

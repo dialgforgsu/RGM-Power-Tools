@@ -2,7 +2,7 @@ import type {
   MonitorClient,
   MonitorGroup,
   MonitoredObject,
-} from '@redgate-power-tools/core';
+} from '@rgm-power-tools/core';
 import { ALERT_NAMES, type AlertName, type ConfigFile } from './schema.js';
 import { alertNameForId, settingToAlertConfig } from './mapping.js';
 

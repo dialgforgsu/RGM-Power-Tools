@@ -1,4 +1,4 @@
-# Redgate Monitor Power Tools
+# RGM Power Tools
 
 Open-source power tools that supplement [Redgate Monitor](https://www.red-gate.com/products/redgate-monitor/)
 for power users. A monorepo of focused CLIs and services that fill gaps in
@@ -58,7 +58,7 @@ node ../packages/alert-config/dist/cli.js diff        # local vs live
 ```
 
 (After `pnpm -r build`, the `monitor-config` binary is also available via
-`pnpm --filter @redgate-power-tools/monitor-config exec monitor-config …`, or
+`pnpm --filter @rgm-power-tools/monitor-config exec monitor-config …`, or
 link it globally with `pnpm link`.)
 
 ## Development
@@ -73,7 +73,7 @@ pnpm format           # prettier --write
 ```
 
 The monorepo uses **pnpm workspaces**. `core` is consumed by the tools as
-`@redgate-power-tools/core` (a `workspace:*` dependency) and exports clean
+`@rgm-power-tools/core` (a `workspace:*` dependency) and exports clean
 TypeScript types so future tools can reuse them.
 
 ## License

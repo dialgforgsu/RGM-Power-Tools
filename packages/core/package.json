@@ -1,5 +1,5 @@
 {
-  "name": "@redgate-power-tools/core",
+  "name": "@rgm-power-tools/core",
   "version": "0.1.0",
   "description": "Shared Redgate Monitor client, auth, and types",
   "license": "MIT",

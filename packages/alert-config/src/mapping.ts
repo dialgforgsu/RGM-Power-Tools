@@ -1,4 +1,4 @@
-import type { RawAlertSetting } from '@redgate-power-tools/core';
+import type { RawAlertSetting } from '@rgm-power-tools/core';
 import { ALERT_NAME_BY_ID, ALERT_TYPE_IDS } from './alert-types.js';
 import type { AlertName } from './schema.js';
 

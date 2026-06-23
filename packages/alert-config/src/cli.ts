@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import { Command } from 'commander';
 import chalk from 'chalk';
-import { MonitorToolError } from '@redgate-power-tools/core';
+import { MonitorToolError } from '@rgm-power-tools/core';
 import { defaultIO, type CliIO } from './io.js';
 import { ConfigValidationError } from './errors.js';
 import { renderValidationIssues } from './output.js';

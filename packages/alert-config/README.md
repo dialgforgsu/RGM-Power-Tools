@@ -39,7 +39,7 @@ monitor-config apply             # apply them (prompts for confirmation)
 
 > The examples use the `monitor-config` binary. Until it's linked onto your
 > `PATH`, run it as `node packages/alert-config/dist/cli.js <command>` or via
-> `pnpm --filter @redgate-power-tools/monitor-config exec monitor-config`.
+> `pnpm --filter @rgm-power-tools/monitor-config exec monitor-config`.
 
 ## Authentication
 
@@ -165,7 +165,7 @@ monitor-config apply --url https://dr-monitor             # idempotent: no-op
 ## How it talks to Monitor
 
 `monitor-config` shells out to the Monitor PowerShell module via the
-[`@redgate-power-tools/core`](../core) `MonitorClient`. PowerShell is an
+[`@rgm-power-tools/core`](../core) `MonitorClient`. PowerShell is an
 implementation detail behind that interface, so it could later swap to direct
 HTTP without touching this package.
 
@@ -177,7 +177,7 @@ HTTP without touching this package.
 ## Testing
 
 ```bash
-pnpm --filter @redgate-power-tools/monitor-config test
+pnpm --filter @rgm-power-tools/monitor-config test
 ```
 
 Tests use a mock `MonitorClient` (no live instance or PowerShell required), so

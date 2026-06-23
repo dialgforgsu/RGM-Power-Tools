@@ -3,7 +3,7 @@ import {
   PowerShellMonitorClient,
   type MonitorClient,
   type MonitorConnection,
-} from '@redgate-power-tools/core';
+} from '@rgm-power-tools/core';
 
 /**
  * Everything a command touches in the outside world, behind one injectable

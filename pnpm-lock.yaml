@@ -38,7 +38,7 @@ importers:
 
   packages/alert-config:
     dependencies:
-      '@redgate-power-tools/core':
+      '@rgm-power-tools/core':
         specifier: workspace:*
         version: link:../core
       chalk:

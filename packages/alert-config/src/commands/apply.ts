@@ -1,6 +1,6 @@
 import { resolve } from 'node:path';
 import chalk from 'chalk';
-import { resolveConnection } from '@redgate-power-tools/core';
+import { resolveConnection } from '@rgm-power-tools/core';
 import { DEFAULT_CONFIG_FILE } from '../constants.js';
 import { readConfigFile } from '../yaml-io.js';
 import { resolveConfig } from '../resolve.js';

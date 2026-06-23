@@ -1,7 +1,7 @@
 import { resolve } from 'node:path';
 import { writeFileSync } from 'node:fs';
 import chalk from 'chalk';
-import { resolveConnection } from '@redgate-power-tools/core';
+import { resolveConnection } from '@rgm-power-tools/core';
 import { DEFAULT_CONFIG_FILE } from '../constants.js';
 import { buildLiveConfig } from '../live-state.js';
 import { serializeConfig } from '../yaml-io.js';
