@@ -1,0 +1,23 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Build output
+dist/
+*.tsbuildinfo
+
+# Test coverage
+coverage/
+
+# Secrets / local config — never commit
+.monitor-config.json
+.env
+.env.*
+
+# Editor / OS
+.DS_Store
+.idea/
+*.log
+
+# Misc
+index.html

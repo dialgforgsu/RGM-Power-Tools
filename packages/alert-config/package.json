@@ -1,0 +1,36 @@
+{
+  "name": "@redgate-power-tools/monitor-config",
+  "version": "0.1.0",
+  "description": "Alert Config as Code for Redgate Monitor — Terraform-style YAML for alert settings",
+  "license": "MIT",
+  "type": "module",
+  "bin": {
+    "monitor-config": "./dist/cli.js"
+  },
+  "main": "./dist/cli.js",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run",
+    "dev": "node --import tsx src/cli.ts"
+  },
+  "dependencies": {
+    "@redgate-power-tools/core": "workspace:*",
+    "chalk": "^5.3.0",
+    "cli-table3": "^0.6.5",
+    "commander": "^12.1.0",
+    "deep-diff": "^1.0.2",
+    "yaml": "^2.4.5",
+    "zod": "^3.23.8",
+    "zod-to-json-schema": "^3.23.0"
+  },
+  "devDependencies": {
+    "@types/deep-diff": "^1.0.5",
+    "tsx": "^4.15.0",
+    "typescript": "^5.4.5",
+    "vitest": "^1.6.0"
+  }
+}
