@@ -32,6 +32,9 @@ function deepMerge<T>(base: T, source: Partial<T>): T {
   const out: Record<string, unknown> = { ...(base as Record<string, unknown>) };
   for (const [k, v] of Object.entries(source as Record<string, unknown>)) {
     if (v === undefined) continue;
+    // Never let externally-sourced keys walk the prototype chain — guards
+    // against prototype pollution if the schema is ever loosened upstream.
+    if (k === '__proto__' || k === 'constructor' || k === 'prototype') continue;
     const existing = out[k];
     if (
       existing !== null &&

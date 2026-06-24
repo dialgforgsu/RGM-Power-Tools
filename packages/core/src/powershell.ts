@@ -61,11 +61,23 @@ export class ChildProcessPowerShellExecutor implements PowerShellExecutor {
 
   private invoke(executable: string, script: string): Promise<string> {
     return new Promise((resolvePromise, reject) => {
+      // The script embeds the Monitor auth token. Passing it as a `-Command`
+      // argument would expose it in the process command line (Task Manager,
+      // WMI Win32_Process.CommandLine, `ps`, /proc/<pid>/cmdline) to any local
+      // user. `-Command -` reads the script from stdin instead, so the secret
+      // never reaches the process table.
       const child = spawn(
         executable,
-        ['-NoProfile', '-NonInteractive', '-Command', script],
-        { windowsHide: true },
+        ['-NoProfile', '-NonInteractive', '-Command', '-'],
+        { windowsHide: true, stdio: ['pipe', 'pipe', 'pipe'] },
       );
+
+      // Feed the script over stdin, then close it so PowerShell executes and
+      // exits. Swallow EPIPE in case the process died before we finished
+      // writing — that path is already handled by the 'error'/'close' events.
+      child.stdin.on('error', () => {});
+      child.stdin.write(script);
+      child.stdin.end();
 
       let stdout = '';
       let stderr = '';
