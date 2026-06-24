@@ -1,10 +1,13 @@
 import type { MonitorClient } from './monitor-client.js';
 import type {
+  AlertActivity,
   AlertSettingsMap,
+  CustomMetric,
   MonitorGroup,
   MonitoredObject,
   MonitoredObjectRef,
   RawAlertSetting,
+  ServerStatus,
 } from './types.js';
 
 export interface MockMonitorState {
@@ -12,6 +15,10 @@ export interface MockMonitorState {
   groups: MonitorGroup[];
   /** Alert settings keyed by monitored-object id. */
   alertSettings: Record<string, AlertSettingsMap>;
+  /** Diagnostics data (for monitor-doctor); all default to empty. */
+  alertActivity: AlertActivity[];
+  customMetrics: CustomMetric[];
+  serverStatuses: ServerStatus[];
 }
 
 /** A recorded write, for asserting idempotency / apply behaviour in tests. */
@@ -36,6 +43,9 @@ export class MockMonitorClient implements MonitorClient {
       monitoredObjects: state?.monitoredObjects ?? [],
       groups: state?.groups ?? [],
       alertSettings: state?.alertSettings ?? {},
+      alertActivity: state?.alertActivity ?? [],
+      customMetrics: state?.customMetrics ?? [],
+      serverStatuses: state?.serverStatuses ?? [],
     };
   }
 
@@ -74,6 +84,18 @@ export class MockMonitorClient implements MonitorClient {
         : (existing[alertType]?.enabled ?? true);
     const updated: RawAlertSetting = { alertType, enabled, settings };
     this.state.alertSettings[object.id] = { ...existing, [alertType]: updated };
+  }
+
+  async getAlertActivity(): Promise<AlertActivity[]> {
+    return structuredClone(this.state.alertActivity);
+  }
+
+  async getCustomMetrics(): Promise<CustomMetric[]> {
+    return structuredClone(this.state.customMetrics);
+  }
+
+  async getServerStatuses(): Promise<ServerStatus[]> {
+    return structuredClone(this.state.serverStatuses);
   }
 
   /** Number of writes recorded so far (handy in idempotency assertions). */

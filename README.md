@@ -17,6 +17,8 @@ every other tool — including `monitor-config` — can use as filter keys.
 | [`packages/core`](packages/core)                 | Shared Monitor client (PowerShell-backed), auth, types, and the tag engine  |
 | [`packages/alert-config`](packages/alert-config) | `monitor-config` — treat Monitor alert settings as version-controlled YAML  |
 | [`packages/tagger`](packages/tagger)             | `monitor-tagger` — a metadata/tagging layer over Monitor groups, as YAML    |
+| [`packages/doctor`](packages/doctor)             | `monitor-doctor` — a linter/audit for your Monitor installation             |
+| [`packages/server`](packages/server)             | `monitor-dashboard` — self-hostable web dashboard + JSON API for the tools  |
 
 ## monitor-config — Alert Config as Code
 
@@ -54,6 +56,49 @@ monitor-config apply --tag criticality=high
 
 The tag engine lives in `@rgm-power-tools/core`, so future tools get the same
 filtering for free. See **[packages/tagger/README.md](packages/tagger/README.md)**.
+
+## monitor-doctor — lint your Monitor installation
+
+**`npm audit` for Monitor.** It finds the quiet problems that accumulate: servers
+monitored but never alerting, alert types with no notification channel, custom
+metrics that haven't returned data in 30 days, and decommissioned servers still
+consuming licenses.
+
+```bash
+export MONITOR_URL=https://monitor.example.com MONITOR_AUTH_TOKEN=...
+monitor-doctor                          # audit everything
+monitor-doctor check --fail-on warning  # CI gate (exit 1 on warnings+)
+monitor-doctor list                     # show the checks
+```
+
+Checks are pure functions over a single gathered snapshot, so new audits are
+easy to add. See **[packages/doctor/README.md](packages/doctor/README.md)**.
+
+## monitor-dashboard — self-host the whole toolkit
+
+Prefer a UI over the CLIs? Run the self-hostable dashboard. It wraps the same
+engine in a small web app + JSON API so you can check the connection, browse
+groups, manage tags, and preview/apply alert config (tag-scoped) from one place.
+
+```bash
+# Node
+pnpm -r build
+export MONITOR_URL=https://monitor.example.com MONITOR_AUTH_TOKEN=...
+export DASHBOARD_TOKEN="$(openssl rand -hex 24)"   # required
+node packages/server/dist/cli.js --workdir /path/to/config-repo
+# -> http://127.0.0.1:4570
+
+# Docker (one command)
+DASHBOARD_TOKEN=$(openssl rand -hex 24) \
+MONITOR_URL=https://monitor.example.com MONITOR_AUTH_TOKEN=... \
+docker compose up --build
+```
+
+It binds loopback by default, gates every API route behind a constant-time
+bearer token, never sends the Monitor token to the browser, and makes applies
+explicit (dry-run unless confirmed). See
+**[packages/server/README.md](packages/server/README.md)** for the security
+model and full API.
 
 ## Prerequisites
 

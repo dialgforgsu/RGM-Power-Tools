@@ -10,12 +10,18 @@ export default tseslint.config(
       '**/node_modules/**',
       '**/coverage/**',
       '**/.smoke/**',
-      'packages/webhook-proxy/**',
       '**/*.cjs',
     ],
   },
   js.configs.recommended,
   ...tseslint.configs.recommended,
+  {
+    // The dashboard's static assets run in the browser, not Node.
+    files: ['**/public/**/*.js'],
+    languageOptions: {
+      globals: { ...globals.browser, ...globals.es2022 },
+    },
+  },
   {
     files: ['**/*.ts'],
     languageOptions: {

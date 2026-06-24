@@ -1,0 +1,29 @@
+# Self-host the dashboard with one command:
+#
+#   DASHBOARD_TOKEN=$(openssl rand -hex 24) \
+#   MONITOR_URL=https://monitor.example.com \
+#   MONITOR_AUTH_TOKEN=... \
+#   docker compose up --build
+#
+# The port is published to 127.0.0.1 only. To expose it on a network, put a
+# reverse proxy with TLS in front and keep the strong DASHBOARD_TOKEN.
+
+services:
+  dashboard:
+    build: .
+    # Loopback-only by default. Change to "4570:4570" (at your own risk) to
+    # listen on all host interfaces — only behind TLS + a strong token.
+    ports:
+      - '127.0.0.1:4570:4570'
+    environment:
+      DASHBOARD_TOKEN: ${DASHBOARD_TOKEN:?set a strong token, e.g. openssl rand -hex 24}
+      MONITOR_URL: ${MONITOR_URL:?set your Monitor base URL}
+      MONITOR_AUTH_TOKEN: ${MONITOR_AUTH_TOKEN:?set your Monitor auth token}
+    volumes:
+      # Your monitor-config.yaml / monitor-tags.yaml live here.
+      - ./monitor-data:/data
+      # Mount the Redgate Monitor PowerShell module and point PSModulePath at it:
+      # - ./RedgateMonitorModule:/opt/rgm-module
+    # environment (optional):
+    #   PSModulePath: /opt/rgm-module
+    restart: unless-stopped

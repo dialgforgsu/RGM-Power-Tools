@@ -1,0 +1,11 @@
+**/node_modules
+**/dist
+**/*.tsbuildinfo
+.git
+coverage
+*.log
+.monitor-config.json
+.env
+.env.*
+monitor-data
+index.html

@@ -67,6 +67,47 @@ export interface RawAlertSetting {
 /** All alert settings for a single monitored object, keyed by numeric AlertType. */
 export type AlertSettingsMap = Record<number, RawAlertSetting>;
 
+// --- Diagnostics surface (consumed by monitor-doctor) ------------------------
+// These power install-health audits. They are read-only projections of Monitor
+// state that don't fit the alert-config domain, kept here so every tool reads
+// them through the one shared client.
+
+/** When a monitored object last raised an alert — for staleness audits. */
+export interface AlertActivity {
+  objectId: string;
+  /** ISO-8601 timestamp of the most recent alert, or null if it never alerted. */
+  lastAlertUtc: string | null;
+  /** Number of alerts raised within Monitor's retained history window. */
+  alertCount: number;
+}
+
+/** A custom metric definition and when it last returned data. */
+export interface CustomMetric {
+  id: string;
+  name: string;
+  enabled: boolean;
+  /** ISO-8601 timestamp of the most recent collected value, or null if never. */
+  lastDataUtc: string | null;
+}
+
+/** Monitoring/license status for a server-like monitored object. */
+export type MonitoringStatus =
+  | 'Active'
+  | 'Stopped'
+  | 'Decommissioned'
+  | 'Maintenance'
+  | 'Unknown';
+
+export interface ServerStatus {
+  objectId: string;
+  name: string;
+  status: MonitoringStatus;
+  /** Whether this object currently consumes a Monitor license. */
+  consumesLicense: boolean;
+  /** ISO-8601 timestamp of the last data received, or null. */
+  lastDataUtc: string | null;
+}
+
 /** Connection details for a Monitor instance. */
 export interface MonitorConnection {
   /** Base URL of the Monitor web UI/API, e.g. https://monitor.example.com. */

@@ -4,12 +4,15 @@ import {
   type PowerShellExecutor,
 } from './powershell.js';
 import type {
+  AlertActivity,
   AlertSettingsMap,
+  CustomMetric,
   MonitorConnection,
   MonitorGroup,
   MonitoredObject,
   MonitoredObjectRef,
   RawAlertSetting,
+  ServerStatus,
 } from './types.js';
 
 /**
@@ -38,6 +41,14 @@ export interface MonitorClient {
     alertType: number,
     settings: Record<string, unknown>,
   ): Promise<void>;
+
+  // --- Diagnostics reads (for monitor-doctor) ---
+  /** Per-object alerting activity, for "never alerting" style audits. */
+  getAlertActivity(): Promise<AlertActivity[]>;
+  /** Custom metric definitions and when each last returned data. */
+  getCustomMetrics(): Promise<CustomMetric[]>;
+  /** License/monitoring status per server, for decommission audits. */
+  getServerStatuses(): Promise<ServerStatus[]>;
 }
 
 export interface PowerShellMonitorClientOptions {
@@ -155,6 +166,35 @@ export class PowerShellMonitorClient implements MonitorClient {
       `-AlertType ${alertType} -Settings $settings | Out-Null`;
     await this.executor.run(this.withSession(body));
   }
+
+  // --- Diagnostics reads ---
+  // The cmdlet names below are the integration seam: they project Monitor state
+  // into normalized JSON. Exact cmdlets/fields vary by Monitor version; this is
+  // the one place to adjust them (mirrors how alert reads are isolated above).
+
+  async getAlertActivity(): Promise<AlertActivity[]> {
+    const raw = await this.runJson<RawAlertActivity[] | RawAlertActivity>(
+      'Get-SqlMonitorAlertActivity | ' +
+        'Select-Object ObjectId, LastAlertUtc, AlertCount | ConvertTo-Json -Depth 4',
+    );
+    return asArray(raw).map(normalizeAlertActivity);
+  }
+
+  async getCustomMetrics(): Promise<CustomMetric[]> {
+    const raw = await this.runJson<RawCustomMetric[] | RawCustomMetric>(
+      'Get-SqlMonitorCustomMetric | ' +
+        'Select-Object Id, Name, Enabled, LastDataUtc | ConvertTo-Json -Depth 4',
+    );
+    return asArray(raw).map(normalizeCustomMetric);
+  }
+
+  async getServerStatuses(): Promise<ServerStatus[]> {
+    const raw = await this.runJson<RawServerStatus[] | RawServerStatus>(
+      'Get-SqlMonitorMonitoredObject | Where-Object { $_.Type -in @("Machine","Instance") } | ' +
+        'Select-Object Id, Name, Status, ConsumesLicense, LastDataUtc | ConvertTo-Json -Depth 4',
+    );
+    return asArray(raw).map(normalizeServerStatus);
+  }
 }
 
 // --- Raw shapes returned by ConvertTo-Json (property names mirror cmdlets) ---
@@ -177,6 +217,27 @@ interface RawAlertSettingEntry {
   AlertType: number;
   Enabled: boolean;
   Settings?: Record<string, unknown> | null;
+}
+
+interface RawAlertActivity {
+  ObjectId: string | number;
+  LastAlertUtc?: string | null;
+  AlertCount?: number | null;
+}
+
+interface RawCustomMetric {
+  Id: string | number;
+  Name: string;
+  Enabled?: boolean | null;
+  LastDataUtc?: string | null;
+}
+
+interface RawServerStatus {
+  Id: string | number;
+  Name: string;
+  Status?: string | null;
+  ConsumesLicense?: boolean | null;
+  LastDataUtc?: string | null;
 }
 
 function asArray<T>(value: T[] | T | null | undefined): T[] {
@@ -209,5 +270,44 @@ function normalizeAlertSetting(raw: RawAlertSettingEntry): RawAlertSetting {
     alertType: raw.AlertType,
     enabled: Boolean(raw.Enabled),
     settings: raw.Settings ?? {},
+  };
+}
+
+function normalizeAlertActivity(raw: RawAlertActivity): AlertActivity {
+  return {
+    objectId: String(raw.ObjectId),
+    lastAlertUtc: raw.LastAlertUtc ?? null,
+    alertCount: Number(raw.AlertCount ?? 0),
+  };
+}
+
+function normalizeCustomMetric(raw: RawCustomMetric): CustomMetric {
+  return {
+    id: String(raw.Id),
+    name: raw.Name,
+    enabled: raw.Enabled !== false,
+    lastDataUtc: raw.LastDataUtc ?? null,
+  };
+}
+
+const MONITORING_STATUSES: ReadonlySet<string> = new Set([
+  'Active',
+  'Stopped',
+  'Decommissioned',
+  'Maintenance',
+  'Unknown',
+]);
+
+function normalizeServerStatus(raw: RawServerStatus): ServerStatus {
+  const status =
+    raw.Status && MONITORING_STATUSES.has(raw.Status)
+      ? (raw.Status as ServerStatus['status'])
+      : 'Unknown';
+  return {
+    objectId: String(raw.Id),
+    name: raw.Name,
+    status,
+    consumesLicense: raw.ConsumesLicense !== false,
+    lastDataUtc: raw.LastDataUtc ?? null,
   };
 }

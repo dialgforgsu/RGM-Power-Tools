@@ -1,11 +1,11 @@
 {
-  "name": "@rgm-power-tools/monitor-tagger",
+  "name": "@rgm-power-tools/monitor-doctor",
   "version": "0.1.0",
-  "description": "Tags as Code for Redgate Monitor — a metadata layer (owner, business unit, criticality, cost center) over Monitor groups",
+  "description": "A linter for your Redgate Monitor installation — npm audit for Monitor",
   "license": "MIT",
   "type": "module",
   "bin": {
-    "monitor-tagger": "./dist/cli.js"
+    "monitor-doctor": "./dist/cli.js"
   },
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -27,9 +27,7 @@
   "dependencies": {
     "@rgm-power-tools/core": "workspace:*",
     "chalk": "^5.3.0",
-    "cli-table3": "^0.6.5",
-    "commander": "^12.1.0",
-    "yaml": "^2.4.5"
+    "commander": "^12.1.0"
   },
   "devDependencies": {
     "tsx": "^4.15.0",
