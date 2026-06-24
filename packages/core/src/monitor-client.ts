@@ -7,6 +7,7 @@ import type {
   AlertActivity,
   AlertSettingsMap,
   CustomMetric,
+  LicenseSummary,
   MonitorConnection,
   MonitorGroup,
   MonitoredObject,
@@ -49,6 +50,8 @@ export interface MonitorClient {
   getCustomMetrics(): Promise<CustomMetric[]>;
   /** License/monitoring status per server, for decommission audits. */
   getServerStatuses(): Promise<ServerStatus[]>;
+  /** Installation-wide license capacity, for utilization/cost audits. */
+  getLicenseSummary(): Promise<LicenseSummary>;
 }
 
 export interface PowerShellMonitorClientOptions {
@@ -195,6 +198,15 @@ export class PowerShellMonitorClient implements MonitorClient {
     );
     return asArray(raw).map(normalizeServerStatus);
   }
+
+  async getLicenseSummary(): Promise<LicenseSummary> {
+    const raw = await this.runJson<RawLicenseSummary | RawLicenseSummary[]>(
+      'Get-SqlMonitorLicense | ' +
+        'Select-Object TotalSlots, UsedSlots, Edition | ConvertTo-Json -Depth 4',
+    );
+    const first = asArray(raw)[0];
+    return normalizeLicenseSummary(first);
+  }
 }
 
 // --- Raw shapes returned by ConvertTo-Json (property names mirror cmdlets) ---
@@ -238,6 +250,12 @@ interface RawServerStatus {
   Status?: string | null;
   ConsumesLicense?: boolean | null;
   LastDataUtc?: string | null;
+}
+
+interface RawLicenseSummary {
+  TotalSlots?: number | null;
+  UsedSlots?: number | null;
+  Edition?: string | null;
 }
 
 function asArray<T>(value: T[] | T | null | undefined): T[] {
@@ -309,5 +327,15 @@ function normalizeServerStatus(raw: RawServerStatus): ServerStatus {
     status,
     consumesLicense: raw.ConsumesLicense !== false,
     lastDataUtc: raw.LastDataUtc ?? null,
+  };
+}
+
+function normalizeLicenseSummary(
+  raw: RawLicenseSummary | undefined,
+): LicenseSummary {
+  return {
+    totalSlots: Number(raw?.TotalSlots ?? 0),
+    usedSlots: Number(raw?.UsedSlots ?? 0),
+    ...(raw?.Edition ? { edition: raw.Edition } : {}),
   };
 }

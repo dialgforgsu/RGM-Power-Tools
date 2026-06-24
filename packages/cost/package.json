@@ -1,11 +1,11 @@
 {
-  "name": "@rgm-power-tools/server",
+  "name": "@rgm-power-tools/monitor-cost",
   "version": "0.1.0",
-  "description": "Self-hostable dashboard and JSON API to drive the RGM Power Tools",
+  "description": "License utilization & spend audit for Redgate Monitor — find wasted slots and project onboarding cost",
   "license": "MIT",
   "type": "module",
   "bin": {
-    "monitor-dashboard": "./dist/cli.js"
+    "monitor-cost": "./dist/cli.js"
   },
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -16,8 +16,7 @@
     }
   },
   "files": [
-    "dist",
-    "public"
+    "dist"
   ],
   "scripts": {
     "build": "tsc -p tsconfig.json",
@@ -27,13 +26,10 @@
   },
   "dependencies": {
     "@rgm-power-tools/core": "workspace:*",
-    "@rgm-power-tools/monitor-config": "workspace:*",
-    "@rgm-power-tools/monitor-tagger": "workspace:*",
-    "@rgm-power-tools/monitor-doctor": "workspace:*",
-    "@rgm-power-tools/monitor-cost": "workspace:*"
+    "chalk": "^5.3.0",
+    "commander": "^12.1.0"
   },
   "devDependencies": {
-    "@types/node": "^20.14.0",
     "tsx": "^4.15.0",
     "typescript": "^5.4.5",
     "vitest": "^1.6.0"

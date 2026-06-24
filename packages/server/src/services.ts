@@ -31,6 +31,14 @@ import {
   runChecks,
   type DoctorReport,
 } from '@rgm-power-tools/monitor-doctor';
+import {
+  gatherCostData,
+  analyzeCost,
+  projectCost,
+  resolveCostOptions,
+  type CostReport,
+  type Projection,
+} from '@rgm-power-tools/monitor-cost';
 
 export interface ToolServiceOptions {
   /** Directory holding monitor-config.yaml / monitor-tags.yaml. */
@@ -205,5 +213,23 @@ export class ToolService {
     const client = await this.connectedClient();
     const snapshot = await gatherSnapshot(client);
     return runChecks(snapshot);
+  }
+
+  /**
+   * License utilization & spend audit (monitor-cost). Cost-per-slot/currency
+   * come from the environment (MONITOR_COST_PER_SLOT / MONITOR_CURRENCY /
+   * MONITOR_IDLE_DAYS). Optionally include an onboarding projection.
+   */
+  async cost(
+    addServers?: number,
+  ): Promise<{ report: CostReport; projection?: Projection }> {
+    const options = resolveCostOptions({ env: this.env });
+    const client = await this.connectedClient();
+    const { servers, license } = await gatherCostData(client);
+    const report = analyzeCost(servers, license, options, new Date());
+    if (addServers && addServers > 0) {
+      return { report, projection: projectCost(license, addServers, options) };
+    }
+    return { report };
   }
 }

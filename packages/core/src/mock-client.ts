@@ -3,6 +3,7 @@ import type {
   AlertActivity,
   AlertSettingsMap,
   CustomMetric,
+  LicenseSummary,
   MonitorGroup,
   MonitoredObject,
   MonitoredObjectRef,
@@ -19,6 +20,8 @@ export interface MockMonitorState {
   alertActivity: AlertActivity[];
   customMetrics: CustomMetric[];
   serverStatuses: ServerStatus[];
+  /** License capacity (for monitor-cost); defaults to all-zero. */
+  licenseSummary: LicenseSummary;
 }
 
 /** A recorded write, for asserting idempotency / apply behaviour in tests. */
@@ -46,6 +49,7 @@ export class MockMonitorClient implements MonitorClient {
       alertActivity: state?.alertActivity ?? [],
       customMetrics: state?.customMetrics ?? [],
       serverStatuses: state?.serverStatuses ?? [],
+      licenseSummary: state?.licenseSummary ?? { totalSlots: 0, usedSlots: 0 },
     };
   }
 
@@ -96,6 +100,10 @@ export class MockMonitorClient implements MonitorClient {
 
   async getServerStatuses(): Promise<ServerStatus[]> {
     return structuredClone(this.state.serverStatuses);
+  }
+
+  async getLicenseSummary(): Promise<LicenseSummary> {
+    return structuredClone(this.state.licenseSummary);
   }
 
   /** Number of writes recorded so far (handy in idempotency assertions). */

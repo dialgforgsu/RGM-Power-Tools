@@ -18,6 +18,7 @@ every other tool — including `monitor-config` — can use as filter keys.
 | [`packages/alert-config`](packages/alert-config) | `monitor-config` — treat Monitor alert settings as version-controlled YAML  |
 | [`packages/tagger`](packages/tagger)             | `monitor-tagger` — a metadata/tagging layer over Monitor groups, as YAML    |
 | [`packages/doctor`](packages/doctor)             | `monitor-doctor` — a linter/audit for your Monitor installation             |
+| [`packages/cost`](packages/cost)                 | `monitor-cost` — license utilization & spend audit, with onboarding projection |
 | [`packages/server`](packages/server)             | `monitor-dashboard` — self-hostable web dashboard + JSON API for the tools  |
 
 ## monitor-config — Alert Config as Code
@@ -73,6 +74,22 @@ monitor-doctor list                     # show the checks
 
 Checks are pure functions over a single gathered snapshot, so new audits are
 easy to add. See **[packages/doctor/README.md](packages/doctor/README.md)**.
+
+## monitor-cost — license utilization & spend audit
+
+The easiest ROI argument in the suite. It surfaces servers paying for monitoring
+slots that haven't sent data in N days (wasted spend), and projects what
+onboarding more servers will cost.
+
+```bash
+export MONITOR_URL=https://monitor.example.com MONITOR_AUTH_TOKEN=...
+monitor-cost --cost-per-slot 600 --currency USD   # utilization + reclaimable $
+monitor-cost project --add 10                     # cost to onboard 10 servers
+```
+
+Cost-per-slot is yours to supply (`--cost-per-slot` / `MONITOR_COST_PER_SLOT`);
+without it the audit reports slots only. See
+**[packages/cost/README.md](packages/cost/README.md)**.
 
 ## monitor-dashboard — self-host the whole toolkit
 

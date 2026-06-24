@@ -108,6 +108,16 @@ export interface ServerStatus {
   lastDataUtc: string | null;
 }
 
+/** Installation-wide license capacity — for utilization/cost audits. */
+export interface LicenseSummary {
+  /** Total licensed monitoring slots. */
+  totalSlots: number;
+  /** Slots currently allocated/consumed. */
+  usedSlots: number;
+  /** License edition/SKU label, if Monitor reports one. */
+  edition?: string;
+}
+
 /** Connection details for a Monitor instance. */
 export interface MonitorConnection {
   /** Base URL of the Monitor web UI/API, e.g. https://monitor.example.com. */
