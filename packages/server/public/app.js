@@ -406,5 +406,7 @@ document.getElementById('replay-btn').addEventListener('click', runReplay);
 document.getElementById('replay-copy').addEventListener('click', copyReplay);
 document.getElementById('annot-btn').addEventListener('click', addAnnotation);
 
-// Auto-connect on load (will prompt for a token if the API rejects).
-refreshStatus().then(loadGroups);
+// Don't connect on load — the dashboard and its tools open without contacting
+// Monitor. The connection (and any token) is only needed once you use a tool:
+// hit "Refresh", load groups, run a check, etc. Each action connects on demand.
+setConnected(null, 'Not connected — use any tool to connect.');
