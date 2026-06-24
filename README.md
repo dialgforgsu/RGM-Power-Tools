@@ -20,6 +20,29 @@ works on its own or together.
 
 Each tool's README has its full command reference.
 
+## Download / Windows install
+
+Prefer not to install Node? The **dashboard** ships as a self-contained Windows
+build — Node runtime, server, and web UI fused into one `.exe`. Two ways to get
+it, both produced by `pnpm package` into `packaging/dist/`:
+
+| Option | What it is |
+| ------ | ---------- |
+| **`monitor-dashboard-setup.exe`** | A simple install wizard — installs the app, adds Start Menu / desktop shortcuts, and launches the dashboard (opens your browser) on finish. |
+| **`monitor-dashboard-portable.zip`** | No install: unzip and run `monitor-dashboard.exe`. No admin rights needed. |
+
+```bash
+pnpm install
+pnpm package        # → packaging/dist/{monitor-dashboard-setup.exe, monitor-dashboard-portable.zip, monitor-dashboard.exe}
+```
+
+The exe starts on `http://127.0.0.1:4570` and opens your browser. To expose it on
+the network, pass `--token <16+ chars> --host 0.0.0.0` (put it behind TLS / a
+reverse proxy). It still needs **PowerShell** and the **Redgate Monitor
+PowerShell module** present at runtime — those are licensed per instance and
+can't be bundled. See [`packaging/`](packaging) for build details and the full
+runtime requirements.
+
 ## Quickstart
 
 You need **Node 20+**, **PowerShell** (`pwsh` or Windows PowerShell), the
