@@ -15,14 +15,19 @@
     "typecheck": "pnpm -r run typecheck",
     "lint": "eslint .",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "package": "node packaging/build-all.mjs",
+    "package:exe": "node packaging/build-exe.mjs",
+    "package:portable": "node packaging/build-portable.mjs"
   },
   "devDependencies": {
     "@eslint/js": "^8.57.0",
     "@types/node": "^20.14.0",
+    "esbuild": "^0.28.1",
     "eslint": "^8.57.0",
     "eslint-config-prettier": "^9.1.0",
     "globals": "^15.6.0",
+    "postject": "1.0.0-alpha.6",
     "prettier": "^3.3.0",
     "typescript": "^5.4.5",
     "typescript-eslint": "^7.13.0",

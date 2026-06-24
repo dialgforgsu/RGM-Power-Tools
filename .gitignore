@@ -6,6 +6,10 @@ node_modules/
 dist/
 *.tsbuildinfo
 
+# Packaging intermediates (final artifacts land in packaging/dist/, covered by dist/)
+packaging/build/
+packaging/.generated/
+
 # Test coverage
 coverage/
 
