@@ -43,6 +43,23 @@ export function createWebhookHandler(
       return { status: 404, body: { error: `Unknown provider "${req.provider}".` } };
     }
 
+    // Authenticate on the raw bytes BEFORE parsing — never process an
+    // unauthenticated payload. Signatures cover rawBody, not the parsed object.
+    try {
+      provider.verify({
+        rawBody: req.rawBody,
+        payload: undefined,
+        headers: req.headers,
+        query: req.query,
+        secret: deps.secret,
+      });
+    } catch (err) {
+      if (err instanceof WebhookAuthError) {
+        return { status: 401, body: { error: err.message } };
+      }
+      throw err;
+    }
+
     let payload: unknown;
     try {
       payload = req.rawBody ? JSON.parse(req.rawBody) : {};
@@ -58,16 +75,7 @@ export function createWebhookHandler(
       secret: deps.secret,
     };
 
-    try {
-      provider.verify(ctx);
-    } catch (err) {
-      if (err instanceof WebhookAuthError) {
-        return { status: 401, body: { error: err.message } };
-      }
-      throw err;
-    }
-
-    let event;
+    let event: DeployEvent;
     try {
       event = provider.parse(ctx);
     } catch (err) {
