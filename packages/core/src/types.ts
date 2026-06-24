@@ -3,8 +3,9 @@
  *
  * These model Monitor's own domain (monitored objects, groups, raw alert
  * settings) and are deliberately decoupled from any one tool's config format.
- * The `alert-config` package maps between these and its YAML schema; a future
- * `webhook-proxy` package can reuse them as-is.
+ * Every tool maps between these and its own view: `alert-config` to its alert
+ * YAML schema, `monitor-tagger` to its tag overlay — and any future tool can
+ * reuse them as-is.
  */
 
 /** Kinds of object Monitor can monitor. */

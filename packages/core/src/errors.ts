@@ -23,3 +23,9 @@ export class PowerShellError extends MonitorToolError {}
 
 /** Raised when a connection to Monitor cannot be established. */
 export class ConnectionError extends MonitorToolError {}
+
+/**
+ * Raised when a tag overlay file is missing, unreadable, fails schema
+ * validation, or a tag filter expression is malformed.
+ */
+export class TagError extends MonitorToolError {}

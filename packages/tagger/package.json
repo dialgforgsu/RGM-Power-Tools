@@ -1,0 +1,32 @@
+{
+  "name": "@rgm-power-tools/monitor-tagger",
+  "version": "0.1.0",
+  "description": "Tags as Code for Redgate Monitor — a metadata layer (owner, business unit, criticality, cost center) over Monitor groups",
+  "license": "MIT",
+  "type": "module",
+  "bin": {
+    "monitor-tagger": "./dist/cli.js"
+  },
+  "main": "./dist/cli.js",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run",
+    "dev": "node --import tsx src/cli.ts"
+  },
+  "dependencies": {
+    "@rgm-power-tools/core": "workspace:*",
+    "chalk": "^5.3.0",
+    "cli-table3": "^0.6.5",
+    "commander": "^12.1.0",
+    "yaml": "^2.4.5"
+  },
+  "devDependencies": {
+    "tsx": "^4.15.0",
+    "typescript": "^5.4.5",
+    "vitest": "^1.6.0"
+  }
+}

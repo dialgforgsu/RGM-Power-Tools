@@ -5,9 +5,10 @@ import { resolveConnection } from '@rgm-power-tools/core';
 import { DEFAULT_CONFIG_FILE } from '../constants.js';
 import { buildLiveConfig } from '../live-state.js';
 import { serializeConfig } from '../yaml-io.js';
+import { filterConfigByTags, type TagFilterOptions } from '../tag-filter.js';
 import type { CliIO } from '../io.js';
 
-export interface ExportOptions {
+export interface ExportOptions extends TagFilterOptions {
   output?: string;
   group?: string;
   url?: string;
@@ -33,13 +34,16 @@ export async function runExport(
   const client = io.createClient(connection);
   await client.connect();
 
-  const config = await buildLiveConfig(client, { group: options.group });
+  const liveConfig = await buildLiveConfig(client, { group: options.group });
+  const config = filterConfigByTags(liveConfig, options, io.cwd);
   if (config.groups.length === 0) {
     io.out(
       chalk.yellow(
-        options.group
-          ? `No group named "${options.group}" was found.`
-          : 'No groups found on this Monitor instance.',
+        options.tag?.length
+          ? 'No groups matched the given --tag filter(s).'
+          : options.group
+            ? `No group named "${options.group}" was found.`
+            : 'No groups found on this Monitor instance.',
       ),
     );
     return 0;

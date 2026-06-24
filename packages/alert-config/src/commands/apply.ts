@@ -8,9 +8,10 @@ import { buildLiveConfig } from '../live-state.js';
 import { diffConfigs } from '../diff-engine.js';
 import { applyConfig } from '../apply-plan.js';
 import { renderDiff } from '../output.js';
+import { filterConfigByTags, type TagFilterOptions } from '../tag-filter.js';
 import type { CliIO } from '../io.js';
 
-export interface ApplyOptions {
+export interface ApplyOptions extends TagFilterOptions {
   dryRun?: boolean;
   yes?: boolean;
   url?: string;
@@ -27,8 +28,11 @@ export async function runApply(
   io: CliIO,
 ): Promise<number> {
   const path = resolve(io.cwd, DEFAULT_CONFIG_FILE);
-  const config = readConfigFile(path);
-  resolveConfig(config); // surface semantic errors before touching the network
+  const fullConfig = readConfigFile(path);
+  resolveConfig(fullConfig); // surface semantic errors before touching the network
+  // Scope to tag-matched groups (no-op unless --tag is given). Done after the
+  // full resolve above so inheritance is validated against the complete config.
+  const config = filterConfigByTags(fullConfig, options, io.cwd);
 
   const connection = resolveConnection({
     url: options.url,
@@ -39,7 +43,11 @@ export async function runApply(
   const client = io.createClient(connection);
   await client.connect();
 
-  const liveConfig = await buildLiveConfig(client);
+  const liveConfig = filterConfigByTags(
+    await buildLiveConfig(client),
+    options,
+    io.cwd,
+  );
   const plan = diffConfigs(liveConfig, config);
 
   io.out(chalk.bold('Plan: changes to apply (live -> desired)'));

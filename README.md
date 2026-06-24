@@ -1,19 +1,22 @@
 # RGM Power Tools
 
 Open-source power tools that supplement [Redgate Monitor](https://www.red-gate.com/products/redgate-monitor/)
-for power users. A monorepo of focused CLIs and services that fill gaps in
-Monitor's native workflows.
+for power users. A monorepo of focused CLIs that fill gaps in Monitor's native
+workflows.
 
-> **Status:** early. The first tool — **Alert Config as Code** — is here. A
-> second tool (Webhook Enrichment Proxy) is reserved and coming next.
+The tools are designed to **work together**: they share one engine
+(`@rgm-power-tools/core` — the Monitor client, auth, and types) and a common
+YAML conventions, so output from one is input to the next. `monitor-tagger`
+adds a metadata layer (owner, business unit, criticality, cost center) that
+every other tool — including `monitor-config` — can use as filter keys.
 
 ## Packages
 
-| Package                                            | What it does                                                               |
-| -------------------------------------------------- | -------------------------------------------------------------------------- |
-| [`packages/core`](packages/core)                   | Shared Monitor client (PowerShell-backed), auth, and TypeScript types      |
-| [`packages/alert-config`](packages/alert-config)   | `monitor-config` — treat Monitor alert settings as version-controlled YAML |
-| [`packages/webhook-proxy`](packages/webhook-proxy) | Reserved placeholder — coming next                                         |
+| Package                                          | What it does                                                                |
+| ------------------------------------------------ | --------------------------------------------------------------------------- |
+| [`packages/core`](packages/core)                 | Shared Monitor client (PowerShell-backed), auth, types, and the tag engine  |
+| [`packages/alert-config`](packages/alert-config) | `monitor-config` — treat Monitor alert settings as version-controlled YAML  |
+| [`packages/tagger`](packages/tagger)             | `monitor-tagger` — a metadata/tagging layer over Monitor groups, as YAML    |
 
 ## monitor-config — Alert Config as Code
 
@@ -29,6 +32,28 @@ Git-friendly YAML workflow:
 
 See **[packages/alert-config/README.md](packages/alert-config/README.md)** for
 the full command reference and worked example.
+
+## monitor-tagger — Tags as Code
+
+Monitor groups tell you _what_ is monitored, but not _who owns it_, _which
+business unit pays for it_, or _how critical it is_. `monitor-tagger` adds that
+metadata layer as version-controlled YAML alongside your `monitor-config`:
+
+- **init** — scaffold a starter `monitor-tags.yaml`
+- **sync** — pull live group names from Monitor and scaffold/refresh tag entries
+- **list** — show groups and their tags, filtered by any tag (`--filter owner=dba-team`)
+- **validate** — schema-check the tags file
+
+Tags are well-known dimensions (`owner`, `business_unit`, `criticality`,
+`cost_center`) plus any custom keys you add. They become **filter keys every
+other tool can use**: for example, apply alert config only to critical servers:
+
+```bash
+monitor-config apply --tag criticality=high
+```
+
+The tag engine lives in `@rgm-power-tools/core`, so future tools get the same
+filtering for free. See **[packages/tagger/README.md](packages/tagger/README.md)**.
 
 ## Prerequisites
 

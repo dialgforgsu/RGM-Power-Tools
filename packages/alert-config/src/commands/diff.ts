@@ -5,10 +5,11 @@ import { readConfigFile } from '../yaml-io.js';
 import { buildLiveConfig } from '../live-state.js';
 import { diffConfigs } from '../diff-engine.js';
 import { renderDiff } from '../output.js';
+import { filterConfigByTags, type TagFilterOptions } from '../tag-filter.js';
 import type { ConfigFile } from '../schema.js';
 import type { CliIO } from '../io.js';
 
-export interface DiffOptions {
+export interface DiffOptions extends TagFilterOptions {
   source?: string;
   /** A YAML path, or the literal "live" to compare against the instance. */
   target?: string;
@@ -28,7 +29,11 @@ export async function runDiff(
   io: CliIO,
 ): Promise<number> {
   const sourcePath = resolve(io.cwd, options.source ?? DEFAULT_CONFIG_FILE);
-  const sourceConfig = readConfigFile(sourcePath);
+  const sourceConfig = filterConfigByTags(
+    readConfigFile(sourcePath),
+    options,
+    io.cwd,
+  );
   const sourceLabel = options.source ?? DEFAULT_CONFIG_FILE;
 
   const targetSpec = options.target ?? LIVE;
@@ -50,6 +55,7 @@ export async function runDiff(
     targetConfig = readConfigFile(resolve(io.cwd, targetSpec));
     targetLabel = targetSpec;
   }
+  targetConfig = filterConfigByTags(targetConfig, options, io.cwd);
 
   const result = diffConfigs(sourceConfig, targetConfig);
   renderDiff(result, io.out, { source: sourceLabel, target: targetLabel });

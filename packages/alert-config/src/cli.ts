@@ -56,6 +56,11 @@ function wrap(
   };
 }
 
+/** Collect a repeatable option (`--tag a=b --tag c=d`) into an array. */
+function collect(value: string, previous: string[]): string[] {
+  return [...previous, value];
+}
+
 const program = new Command();
 
 program
@@ -86,6 +91,8 @@ program
   .description('Pull live alert settings from Monitor into YAML.')
   .option('-o, --output <file>', 'output path (default: monitor-config.yaml)')
   .option('--group <name>', 'export only this group')
+  .option('--tag <key=value>', 'only groups with this tag (repeatable)', collect, [])
+  .option('--tags-file <file>', 'tags file (default: monitor-tags.yaml)')
   .option('--url <url>', 'Monitor base URL (overrides env/file)')
   .option('--auth-token <token>', 'Monitor auth token (overrides env/file)')
   .action((opts) =>
@@ -94,6 +101,8 @@ program
         {
           output: opts.output,
           group: opts.group,
+          tag: opts.tag,
+          tagsFile: opts.tagsFile,
           url: opts.url,
           authToken: opts.authToken,
         },
@@ -109,6 +118,8 @@ program
   )
   .option('--source <yaml>', 'source config (default: monitor-config.yaml)')
   .option('--target <yaml-or-live>', 'target config or "live" (default: live)')
+  .option('--tag <key=value>', 'only groups with this tag (repeatable)', collect, [])
+  .option('--tags-file <file>', 'tags file (default: monitor-tags.yaml)')
   .option('--url <url>', 'Monitor base URL (overrides env/file)')
   .option('--auth-token <token>', 'Monitor auth token (overrides env/file)')
   .action((opts) =>
@@ -117,6 +128,8 @@ program
         {
           source: opts.source,
           target: opts.target,
+          tag: opts.tag,
+          tagsFile: opts.tagsFile,
           url: opts.url,
           authToken: opts.authToken,
         },
@@ -132,6 +145,8 @@ program
   )
   .option('--dry-run', 'show the plan and exit without applying', false)
   .option('-y, --yes', 'skip the confirmation prompt', false)
+  .option('--tag <key=value>', 'only groups with this tag (repeatable)', collect, [])
+  .option('--tags-file <file>', 'tags file (default: monitor-tags.yaml)')
   .option('--url <url>', 'Monitor base URL (overrides env/file)')
   .option('--auth-token <token>', 'Monitor auth token (overrides env/file)')
   .action((opts) =>
@@ -141,6 +156,8 @@ program
           {
             dryRun: opts.dryRun,
             yes: opts.yes,
+            tag: opts.tag,
+            tagsFile: opts.tagsFile,
             url: opts.url,
             authToken: opts.authToken,
           },

@@ -4,3 +4,4 @@ export * from './auth.js';
 export * from './powershell.js';
 export * from './monitor-client.js';
 export * from './mock-client.js';
+export * from './tags.js';
