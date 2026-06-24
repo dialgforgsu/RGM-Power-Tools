@@ -5,7 +5,10 @@ import {
 } from './powershell.js';
 import type {
   AlertActivity,
+  AlertEvent,
   AlertSettingsMap,
+  Annotation,
+  BackupEvent,
   CustomMetric,
   LicenseSummary,
   MonitorConnection,
@@ -14,6 +17,8 @@ import type {
   MonitoredObjectRef,
   RawAlertSetting,
   ServerStatus,
+  SlowQuery,
+  TimeWindow,
 } from './types.js';
 
 /**
@@ -52,6 +57,16 @@ export interface MonitorClient {
   getServerStatuses(): Promise<ServerStatus[]>;
   /** Installation-wide license capacity, for utilization/cost audits. */
   getLicenseSummary(): Promise<LicenseSummary>;
+
+  // --- Forensic timeline reads (for monitor-replay) ---
+  /** Alerts raised within the window. */
+  getAlertsInWindow(window: TimeWindow): Promise<AlertEvent[]>;
+  /** Slow/expensive queries captured within the window. */
+  getSlowQueriesInWindow(window: TimeWindow): Promise<SlowQuery[]>;
+  /** Backups that ran within the window. */
+  getBackupsInWindow(window: TimeWindow): Promise<BackupEvent[]>;
+  /** Operator annotations recorded within the window. */
+  getAnnotationsInWindow(window: TimeWindow): Promise<Annotation[]>;
 }
 
 export interface PowerShellMonitorClientOptions {
@@ -207,6 +222,49 @@ export class PowerShellMonitorClient implements MonitorClient {
     const first = asArray(raw)[0];
     return normalizeLicenseSummary(first);
   }
+
+  // --- Forensic timeline reads ---
+  // Each takes a time window; cmdlet names/params are the integration seam.
+
+  /** Build the `-StartTime '...' -EndTime '...'` fragment for a window. */
+  private windowArgs(window: TimeWindow): string {
+    return `-StartTime ${psQuote(window.startUtc)} -EndTime ${psQuote(window.endUtc)}`;
+  }
+
+  async getAlertsInWindow(window: TimeWindow): Promise<AlertEvent[]> {
+    const raw = await this.runJson<RawAlertEvent[] | RawAlertEvent>(
+      `Get-SqlMonitorAlert ${this.windowArgs(window)} | ` +
+        'Select-Object Id, RaisedUtc, ClearedUtc, AlertType, AlertName, Severity, Object, Detail | ' +
+        'ConvertTo-Json -Depth 5',
+    );
+    return asArray(raw).map(normalizeAlertEvent);
+  }
+
+  async getSlowQueriesInWindow(window: TimeWindow): Promise<SlowQuery[]> {
+    const raw = await this.runJson<RawSlowQuery[] | RawSlowQuery>(
+      `Get-SqlMonitorTopQuery ${this.windowArgs(window)} | ` +
+        'Select-Object CapturedUtc, Object, Database, DurationMs, Query | ' +
+        'ConvertTo-Json -Depth 5',
+    );
+    return asArray(raw).map(normalizeSlowQuery);
+  }
+
+  async getBackupsInWindow(window: TimeWindow): Promise<BackupEvent[]> {
+    const raw = await this.runJson<RawBackupEvent[] | RawBackupEvent>(
+      `Get-SqlMonitorBackup ${this.windowArgs(window)} | ` +
+        'Select-Object StartedUtc, CompletedUtc, Object, Database, Type, SizeBytes, Outcome | ' +
+        'ConvertTo-Json -Depth 5',
+    );
+    return asArray(raw).map(normalizeBackupEvent);
+  }
+
+  async getAnnotationsInWindow(window: TimeWindow): Promise<Annotation[]> {
+    const raw = await this.runJson<RawAnnotation[] | RawAnnotation>(
+      `Get-SqlMonitorAnnotation ${this.windowArgs(window)} | ` +
+        'Select-Object CreatedUtc, Author, Object, Text | ConvertTo-Json -Depth 5',
+    );
+    return asArray(raw).map(normalizeAnnotation);
+  }
 }
 
 // --- Raw shapes returned by ConvertTo-Json (property names mirror cmdlets) ---
@@ -256,6 +314,42 @@ interface RawLicenseSummary {
   TotalSlots?: number | null;
   UsedSlots?: number | null;
   Edition?: string | null;
+}
+
+interface RawAlertEvent {
+  Id: string | number;
+  RaisedUtc: string;
+  ClearedUtc?: string | null;
+  AlertType?: number | null;
+  AlertName?: string | null;
+  Severity?: string | null;
+  Object?: string | null;
+  Detail?: string | null;
+}
+
+interface RawSlowQuery {
+  CapturedUtc: string;
+  Object?: string | null;
+  Database?: string | null;
+  DurationMs?: number | null;
+  Query?: string | null;
+}
+
+interface RawBackupEvent {
+  StartedUtc: string;
+  CompletedUtc?: string | null;
+  Object?: string | null;
+  Database?: string | null;
+  Type?: string | null;
+  SizeBytes?: number | null;
+  Outcome?: string | null;
+}
+
+interface RawAnnotation {
+  CreatedUtc: string;
+  Author?: string | null;
+  Object?: string | null;
+  Text?: string | null;
 }
 
 function asArray<T>(value: T[] | T | null | undefined): T[] {
@@ -337,5 +431,49 @@ function normalizeLicenseSummary(
     totalSlots: Number(raw?.TotalSlots ?? 0),
     usedSlots: Number(raw?.UsedSlots ?? 0),
     ...(raw?.Edition ? { edition: raw.Edition } : {}),
+  };
+}
+
+function normalizeAlertEvent(raw: RawAlertEvent): AlertEvent {
+  return {
+    id: String(raw.Id),
+    raisedUtc: raw.RaisedUtc,
+    clearedUtc: raw.ClearedUtc ?? null,
+    alertType: Number(raw.AlertType ?? 0),
+    ...(raw.AlertName ? { alertName: raw.AlertName } : {}),
+    ...(raw.Severity ? { severity: raw.Severity } : {}),
+    object: raw.Object ?? '(unknown)',
+    ...(raw.Detail ? { detail: raw.Detail } : {}),
+  };
+}
+
+function normalizeSlowQuery(raw: RawSlowQuery): SlowQuery {
+  return {
+    capturedUtc: raw.CapturedUtc,
+    object: raw.Object ?? '(unknown)',
+    ...(raw.Database ? { database: raw.Database } : {}),
+    durationMs: Number(raw.DurationMs ?? 0),
+    query: raw.Query ?? '',
+  };
+}
+
+function normalizeBackupEvent(raw: RawBackupEvent): BackupEvent {
+  return {
+    startedUtc: raw.StartedUtc,
+    completedUtc: raw.CompletedUtc ?? null,
+    object: raw.Object ?? '(unknown)',
+    database: raw.Database ?? '(unknown)',
+    type: raw.Type ?? '(unknown)',
+    sizeBytes: raw.SizeBytes ?? null,
+    ...(raw.Outcome ? { outcome: raw.Outcome } : {}),
+  };
+}
+
+function normalizeAnnotation(raw: RawAnnotation): Annotation {
+  return {
+    createdUtc: raw.CreatedUtc,
+    ...(raw.Author ? { author: raw.Author } : {}),
+    ...(raw.Object ? { object: raw.Object } : {}),
+    text: raw.Text ?? '',
   };
 }

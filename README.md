@@ -19,6 +19,7 @@ every other tool — including `monitor-config` — can use as filter keys.
 | [`packages/tagger`](packages/tagger)             | `monitor-tagger` — a metadata/tagging layer over Monitor groups, as YAML    |
 | [`packages/doctor`](packages/doctor)             | `monitor-doctor` — a linter/audit for your Monitor installation             |
 | [`packages/cost`](packages/cost)                 | `monitor-cost` — license utilization & spend audit, with onboarding projection |
+| [`packages/replay`](packages/replay)             | `monitor-replay` — forensic post-mortem generator from an incident window   |
 | [`packages/server`](packages/server)             | `monitor-dashboard` — self-hostable web dashboard + JSON API for the tools  |
 
 ## monitor-config — Alert Config as Code
@@ -90,6 +91,23 @@ monitor-cost project --add 10                     # cost to onboard 10 servers
 Cost-per-slot is yours to supply (`--cost-per-slot` / `MONITOR_COST_PER_SLOT`);
 without it the audit reports slots only. See
 **[packages/cost/README.md](packages/cost/README.md)**.
+
+## monitor-replay — forensic post-mortem generator
+
+Turns 90 minutes of incident-review prep into 5. Give it a time window and it
+pulls every alert, slow query, backup, and annotation from Monitor into a
+pre-populated markdown post-mortem — merged timeline, tables, and an analysis
+scaffold with TODOs.
+
+```bash
+export MONITOR_URL=https://monitor.example.com MONITOR_AUTH_TOKEN=...
+monitor-replay --last 2h > postmortem.md
+monitor-replay --from 2026-06-24T01:00:00Z --to 2026-06-24T02:30:00Z \
+  --title "PROD outage" --output postmortem.md
+```
+
+The factual sections are filled from Monitor; the analysis is yours to write.
+See **[packages/replay/README.md](packages/replay/README.md)**.
 
 ## monitor-dashboard — self-host the whole toolkit
 

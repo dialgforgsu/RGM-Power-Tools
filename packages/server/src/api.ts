@@ -78,6 +78,15 @@ const routes: Record<string, Handler> = {
       ),
     };
   },
+  'GET /api/replay': async (req, s) => ({
+    status: 200,
+    body: await s.replay({
+      from: req.query.get('from') ?? undefined,
+      to: req.query.get('to') ?? undefined,
+      last: req.query.get('last') ?? undefined,
+      title: req.query.get('title') ?? undefined,
+    }),
+  }),
 };
 
 /**

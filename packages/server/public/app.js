@@ -226,6 +226,43 @@ async function applyChanges() {
   }
 }
 
+async function runReplay() {
+  const out = document.getElementById('replay-output');
+  const params = new URLSearchParams();
+  const last = document.getElementById('replay-last').value.trim();
+  const from = document.getElementById('replay-from').value.trim();
+  const to = document.getElementById('replay-to').value.trim();
+  const title = document.getElementById('replay-title').value.trim();
+  if (last) params.set('last', last);
+  if (from) params.set('from', from);
+  if (to) params.set('to', to);
+  if (title) params.set('title', title);
+  out.value = 'Generating…';
+  try {
+    const data = await api('GET', `/api/replay?${params.toString()}`);
+    out.value = data.markdown;
+    const c = data.counts;
+    log(
+      `Post-mortem generated: ${c.alerts} alert(s), ${c.slowQueries} slow ` +
+        `quer(y/ies), ${c.backups} backup(s), ${c.annotations} annotation(s).`,
+    );
+  } catch (err) {
+    out.value = '';
+    log(`Replay failed: ${err.message}`, 'error');
+  }
+}
+
+async function copyReplay() {
+  const text = document.getElementById('replay-output').value;
+  if (!text) return;
+  try {
+    await navigator.clipboard.writeText(text);
+    log('Post-mortem markdown copied to clipboard.');
+  } catch {
+    log('Copy failed — select the text and copy manually.', 'error');
+  }
+}
+
 function money(amount, currency) {
   const s = Number(amount).toLocaleString('en-US');
   return currency ? `${s} ${currency}` : s;
@@ -344,6 +381,8 @@ document.getElementById('cost-project-btn').addEventListener('click', () => {
   const n = parseInt(document.getElementById('cost-add').value, 10);
   runCost(Number.isInteger(n) && n > 0 ? n : undefined);
 });
+document.getElementById('replay-btn').addEventListener('click', runReplay);
+document.getElementById('replay-copy').addEventListener('click', copyReplay);
 
 // Auto-connect on load (will prompt for a token if the API rejects).
 refreshStatus().then(loadGroups);

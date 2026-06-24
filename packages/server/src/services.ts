@@ -39,6 +39,11 @@ import {
   type CostReport,
   type Projection,
 } from '@rgm-power-tools/monitor-cost';
+import {
+  parseWindow,
+  gatherTimeline,
+  renderPostMortem,
+} from '@rgm-power-tools/monitor-replay';
 
 export interface ToolServiceOptions {
   /** Directory holding monitor-config.yaml / monitor-tags.yaml. */
@@ -231,5 +236,45 @@ export class ToolService {
       return { report, projection: projectCost(license, addServers, options) };
     }
     return { report };
+  }
+
+  /**
+   * Generate a markdown post-mortem (monitor-replay) for an incident window.
+   * The window comes from `from`/`to` or a relative `last` duration.
+   */
+  async replay(input: {
+    from?: string;
+    to?: string;
+    last?: string;
+    title?: string;
+  }): Promise<{
+    markdown: string;
+    counts: {
+      alerts: number;
+      slowQueries: number;
+      backups: number;
+      annotations: number;
+    };
+  }> {
+    const window = parseWindow({
+      from: input.from,
+      to: input.to,
+      last: input.last,
+    });
+    const client = await this.connectedClient();
+    const data = await gatherTimeline(client, window);
+    const markdown = renderPostMortem(data, {
+      ...(input.title ? { title: input.title } : {}),
+      generatedUtc: new Date().toISOString(),
+    });
+    return {
+      markdown,
+      counts: {
+        alerts: data.alerts.length,
+        slowQueries: data.slowQueries.length,
+        backups: data.backups.length,
+        annotations: data.annotations.length,
+      },
+    };
   }
 }

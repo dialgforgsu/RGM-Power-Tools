@@ -118,6 +118,61 @@ export interface LicenseSummary {
   edition?: string;
 }
 
+// --- Forensic timeline surface (consumed by monitor-replay) ------------------
+// Time-windowed reads for incident post-mortems. Timestamps are ISO-8601 UTC.
+
+/** An inclusive time window. */
+export interface TimeWindow {
+  startUtc: string;
+  endUtc: string;
+}
+
+/** An alert that was raised (and possibly cleared) within the window. */
+export interface AlertEvent {
+  id: string;
+  raisedUtc: string;
+  clearedUtc: string | null;
+  alertType: number;
+  /** Human-readable alert name, if Monitor provides one. */
+  alertName?: string;
+  /** Severity label, e.g. "High". */
+  severity?: string;
+  /** Monitored object the alert fired on. */
+  object: string;
+  detail?: string;
+}
+
+/** A slow/expensive query captured within the window. */
+export interface SlowQuery {
+  capturedUtc: string;
+  object: string;
+  database?: string;
+  durationMs: number;
+  /** Query text (may be truncated by Monitor). */
+  query: string;
+}
+
+/** A backup operation that ran within the window. */
+export interface BackupEvent {
+  startedUtc: string;
+  completedUtc: string | null;
+  object: string;
+  database: string;
+  /** Full / Differential / Log, as Monitor reports it. */
+  type: string;
+  sizeBytes: number | null;
+  /** Succeeded / Failed, if known. */
+  outcome?: string;
+}
+
+/** An operator annotation/note recorded within the window. */
+export interface Annotation {
+  createdUtc: string;
+  author?: string;
+  object?: string;
+  text: string;
+}
+
 /** Connection details for a Monitor instance. */
 export interface MonitorConnection {
   /** Base URL of the Monitor web UI/API, e.g. https://monitor.example.com. */

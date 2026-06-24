@@ -1,7 +1,10 @@
 import type { MonitorClient } from './monitor-client.js';
 import type {
   AlertActivity,
+  AlertEvent,
   AlertSettingsMap,
+  Annotation,
+  BackupEvent,
   CustomMetric,
   LicenseSummary,
   MonitorGroup,
@@ -9,6 +12,8 @@ import type {
   MonitoredObjectRef,
   RawAlertSetting,
   ServerStatus,
+  SlowQuery,
+  TimeWindow,
 } from './types.js';
 
 export interface MockMonitorState {
@@ -22,6 +27,17 @@ export interface MockMonitorState {
   serverStatuses: ServerStatus[];
   /** License capacity (for monitor-cost); defaults to all-zero. */
   licenseSummary: LicenseSummary;
+  /** Forensic timeline data (for monitor-replay); filtered by window on read. */
+  alertEvents: AlertEvent[];
+  slowQueries: SlowQuery[];
+  backups: BackupEvent[];
+  annotations: Annotation[];
+}
+
+/** Inclusive check that an ISO timestamp falls within a window. */
+function inWindow(iso: string, window: TimeWindow): boolean {
+  const t = Date.parse(iso);
+  return t >= Date.parse(window.startUtc) && t <= Date.parse(window.endUtc);
 }
 
 /** A recorded write, for asserting idempotency / apply behaviour in tests. */
@@ -50,6 +66,10 @@ export class MockMonitorClient implements MonitorClient {
       customMetrics: state?.customMetrics ?? [],
       serverStatuses: state?.serverStatuses ?? [],
       licenseSummary: state?.licenseSummary ?? { totalSlots: 0, usedSlots: 0 },
+      alertEvents: state?.alertEvents ?? [],
+      slowQueries: state?.slowQueries ?? [],
+      backups: state?.backups ?? [],
+      annotations: state?.annotations ?? [],
     };
   }
 
@@ -104,6 +124,30 @@ export class MockMonitorClient implements MonitorClient {
 
   async getLicenseSummary(): Promise<LicenseSummary> {
     return structuredClone(this.state.licenseSummary);
+  }
+
+  async getAlertsInWindow(window: TimeWindow): Promise<AlertEvent[]> {
+    return structuredClone(
+      this.state.alertEvents.filter((a) => inWindow(a.raisedUtc, window)),
+    );
+  }
+
+  async getSlowQueriesInWindow(window: TimeWindow): Promise<SlowQuery[]> {
+    return structuredClone(
+      this.state.slowQueries.filter((q) => inWindow(q.capturedUtc, window)),
+    );
+  }
+
+  async getBackupsInWindow(window: TimeWindow): Promise<BackupEvent[]> {
+    return structuredClone(
+      this.state.backups.filter((b) => inWindow(b.startedUtc, window)),
+    );
+  }
+
+  async getAnnotationsInWindow(window: TimeWindow): Promise<Annotation[]> {
+    return structuredClone(
+      this.state.annotations.filter((n) => inWindow(n.createdUtc, window)),
+    );
   }
 
   /** Number of writes recorded so far (handy in idempotency assertions). */

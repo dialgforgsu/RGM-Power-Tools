@@ -62,6 +62,15 @@ function seededClient(): MockMonitorClient {
       { objectId: 's1', name: 'PROD-SQL-01', status: 'Active', consumesLicense: true, lastDataUtc: null },
       { objectId: 's2', name: 'PROD-SQL-02', status: 'Active', consumesLicense: true, lastDataUtc: '2026-06-23T00:00:00Z' },
     ],
+    alertEvents: [
+      { id: 'a1', raisedUtc: '2026-06-24T01:05:00Z', clearedUtc: null, alertType: 1001, alertName: 'High CPU', severity: 'High', object: 'PROD-SQL-01' },
+    ],
+    slowQueries: [
+      { capturedUtc: '2026-06-24T01:10:00Z', object: 'PROD-SQL-01', database: 'sales', durationMs: 5000, query: 'SELECT 1' },
+    ],
+    annotations: [
+      { createdUtc: '2026-06-24T01:15:00Z', author: 'dba', text: 'Failover' },
+    ],
     alertSettings: {
       g1: {
         1001: {
@@ -238,6 +247,26 @@ describe('endpoints', () => {
     const body = proj.body as { projection: { additionalSlotsNeeded: number; withinLicense: boolean } };
     expect(body.projection.additionalSlotsNeeded).toBe(7); // 10 - 3 free
     expect(body.projection.withinLicense).toBe(false);
+  });
+
+  it('generates an incident post-mortem (replay)', async () => {
+    const res = await handle(
+      req(
+        'GET',
+        '/api/replay?from=2026-06-24T01:00:00Z&to=2026-06-24T02:00:00Z&title=Test%20incident',
+        { token: TOKEN },
+      ),
+    );
+    expect(res.status).toBe(200);
+    const body = res.body as { markdown: string; counts: { alerts: number } };
+    expect(body.markdown).toContain('# Post-mortem: Test incident');
+    expect(body.markdown).toContain('High CPU');
+    expect(body.counts.alerts).toBe(1);
+  });
+
+  it('maps a bad replay window to 400', async () => {
+    const res = await handle(req('GET', '/api/replay', { token: TOKEN }));
+    expect(res.status).toBe(400);
   });
 
   it('404s an unknown endpoint', async () => {
