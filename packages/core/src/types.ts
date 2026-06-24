@@ -173,6 +173,16 @@ export interface Annotation {
   text: string;
 }
 
+/** A new annotation to write to the Monitor timeline. */
+export interface AnnotationInput {
+  text: string;
+  /** Monitored object to attach to. Omit for an instance-wide annotation. */
+  object?: string;
+  author?: string;
+  /** ISO-8601 timestamp; defaults to "now" on the Monitor side if omitted. */
+  createdUtc?: string;
+}
+
 /** Connection details for a Monitor instance. */
 export interface MonitorConnection {
   /** Base URL of the Monitor web UI/API, e.g. https://monitor.example.com. */

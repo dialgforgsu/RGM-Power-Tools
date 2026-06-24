@@ -20,6 +20,7 @@ every other tool — including `monitor-config` — can use as filter keys.
 | [`packages/doctor`](packages/doctor)             | `monitor-doctor` — a linter/audit for your Monitor installation             |
 | [`packages/cost`](packages/cost)                 | `monitor-cost` — license utilization & spend audit, with onboarding projection |
 | [`packages/replay`](packages/replay)             | `monitor-replay` — forensic post-mortem generator from an incident window   |
+| [`packages/annotate`](packages/annotate)         | `monitor-annotate` — deploy/CI webhook → Monitor timeline annotations       |
 | [`packages/server`](packages/server)             | `monitor-dashboard` — self-hostable web dashboard + JSON API for the tools  |
 
 ## monitor-config — Alert Config as Code
@@ -108,6 +109,24 @@ monitor-replay --from 2026-06-24T01:00:00Z --to 2026-06-24T02:30:00Z \
 
 The factual sections are filled from Monitor; the analysis is yours to write.
 See **[packages/replay/README.md](packages/replay/README.md)**.
+
+## monitor-annotate — "what changed?" on the timeline
+
+Auto-annotates the Monitor timeline from deploy/CI webhooks, so every incident
+has deploy context sitting right next to the alerts. Run the webhook receiver,
+or call it from a deploy script.
+
+```bash
+export MONITOR_URL=https://monitor.example.com MONITOR_AUTH_TOKEN=...
+export ANNOTATE_WEBHOOK_SECRET="$(openssl rand -hex 24)"
+monitor-annotate serve            # POST /webhook/{github|gitlab|generic}
+
+# …or one-shot from a pipeline:
+monitor-annotate add --text "Deployed web v1.2.3 to PROD" --object PROD-SQL-01
+```
+
+Webhooks are signature-verified (HMAC / token, constant-time) and in-progress
+events are skipped. See **[packages/annotate/README.md](packages/annotate/README.md)**.
 
 ## monitor-dashboard — self-host the whole toolkit
 

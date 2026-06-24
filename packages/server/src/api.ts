@@ -87,6 +87,17 @@ const routes: Record<string, Handler> = {
       title: req.query.get('title') ?? undefined,
     }),
   }),
+  'POST /api/annotate': async (req, s) => {
+    const b = bodyObject(req.body);
+    return {
+      status: 200,
+      body: await s.annotate({
+        text: typeof b.text === 'string' ? b.text : '',
+        ...(typeof b.object === 'string' ? { object: b.object } : {}),
+        ...(typeof b.author === 'string' ? { author: b.author } : {}),
+      }),
+    };
+  },
 };
 
 /**

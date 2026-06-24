@@ -226,6 +226,27 @@ async function applyChanges() {
   }
 }
 
+async function addAnnotation() {
+  const textEl = document.getElementById('annot-text');
+  const objectEl = document.getElementById('annot-object');
+  const text = textEl.value.trim();
+  if (!text) {
+    log('Annotation text is required.', 'error');
+    return;
+  }
+  try {
+    await api('POST', '/api/annotate', {
+      text,
+      object: objectEl.value.trim() || undefined,
+    });
+    log(`Annotation added: ${text}`);
+    textEl.value = '';
+    objectEl.value = '';
+  } catch (err) {
+    log(`Annotate failed: ${err.message}`, 'error');
+  }
+}
+
 async function runReplay() {
   const out = document.getElementById('replay-output');
   const params = new URLSearchParams();
@@ -383,6 +404,7 @@ document.getElementById('cost-project-btn').addEventListener('click', () => {
 });
 document.getElementById('replay-btn').addEventListener('click', runReplay);
 document.getElementById('replay-copy').addEventListener('click', copyReplay);
+document.getElementById('annot-btn').addEventListener('click', addAnnotation);
 
 // Auto-connect on load (will prompt for a token if the API rejects).
 refreshStatus().then(loadGroups);

@@ -6,6 +6,7 @@ import {
   redactToken,
   loadTagSet,
   loadTagSetIfPresent,
+  MonitorToolError,
   type MonitorClient,
   type MonitorConnection,
   type TagSet,
@@ -276,5 +277,26 @@ export class ToolService {
         annotations: data.annotations.length,
       },
     };
+  }
+
+  /**
+   * Write a manual annotation to the Monitor timeline. (Automated deploy/CI
+   * annotations come from the separate `monitor-annotate` webhook receiver.)
+   */
+  async annotate(input: {
+    text: string;
+    object?: string;
+    author?: string;
+  }): Promise<{ created: true }> {
+    if (!input.text || !input.text.trim()) {
+      throw new MonitorToolError('Annotation text is required.');
+    }
+    const client = await this.connectedClient();
+    await client.createAnnotation({
+      text: input.text,
+      ...(input.object ? { object: input.object } : {}),
+      ...(input.author ? { author: input.author } : {}),
+    });
+    return { created: true };
   }
 }

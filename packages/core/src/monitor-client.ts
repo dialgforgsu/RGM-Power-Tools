@@ -8,6 +8,7 @@ import type {
   AlertEvent,
   AlertSettingsMap,
   Annotation,
+  AnnotationInput,
   BackupEvent,
   CustomMetric,
   LicenseSummary,
@@ -67,6 +68,8 @@ export interface MonitorClient {
   getBackupsInWindow(window: TimeWindow): Promise<BackupEvent[]>;
   /** Operator annotations recorded within the window. */
   getAnnotationsInWindow(window: TimeWindow): Promise<Annotation[]>;
+  /** Write an annotation to the Monitor timeline (for monitor-annotate). */
+  createAnnotation(input: AnnotationInput): Promise<void>;
 }
 
 export interface PowerShellMonitorClientOptions {
@@ -264,6 +267,18 @@ export class PowerShellMonitorClient implements MonitorClient {
         'Select-Object CreatedUtc, Author, Object, Text | ConvertTo-Json -Depth 5',
     );
     return asArray(raw).map(normalizeAnnotation);
+  }
+
+  async createAnnotation(input: AnnotationInput): Promise<void> {
+    // Every value is escaped via psQuote — annotation text often comes from
+    // untrusted webhook payloads, so this must never interpolate raw.
+    const parts = [`-Text ${psQuote(input.text)}`];
+    if (input.object) parts.push(`-Object ${psQuote(input.object)}`);
+    if (input.author) parts.push(`-Author ${psQuote(input.author)}`);
+    if (input.createdUtc) parts.push(`-Time ${psQuote(input.createdUtc)}`);
+    await this.executor.run(
+      this.withSession(`Add-SqlMonitorAnnotation ${parts.join(' ')} | Out-Null`),
+    );
   }
 }
 

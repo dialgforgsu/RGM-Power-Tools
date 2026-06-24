@@ -76,6 +76,28 @@ importers:
         specifier: ^1.6.0
         version: 1.6.1(@types/node@20.19.43)
 
+  packages/annotate:
+    dependencies:
+      '@rgm-power-tools/core':
+        specifier: workspace:*
+        version: link:../core
+      chalk:
+        specifier: ^5.3.0
+        version: 5.6.2
+      commander:
+        specifier: ^12.1.0
+        version: 12.1.0
+    devDependencies:
+      tsx:
+        specifier: ^4.15.0
+        version: 4.22.4
+      typescript:
+        specifier: ^5.4.5
+        version: 5.9.3
+      vitest:
+        specifier: ^1.6.0
+        version: 1.6.1(@types/node@20.19.43)
+
   packages/core:
     dependencies:
       yaml:

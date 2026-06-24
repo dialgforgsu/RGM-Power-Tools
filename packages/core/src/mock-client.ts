@@ -4,6 +4,7 @@ import type {
   AlertEvent,
   AlertSettingsMap,
   Annotation,
+  AnnotationInput,
   BackupEvent,
   CustomMetric,
   LicenseSummary,
@@ -55,6 +56,8 @@ export interface RecordedUpdate {
 export class MockMonitorClient implements MonitorClient {
   private state: MockMonitorState;
   readonly updates: RecordedUpdate[] = [];
+  /** Annotations written via {@link createAnnotation}, for test assertions. */
+  readonly createdAnnotations: AnnotationInput[] = [];
   connected = false;
 
   constructor(state?: Partial<MockMonitorState>) {
@@ -148,6 +151,16 @@ export class MockMonitorClient implements MonitorClient {
     return structuredClone(
       this.state.annotations.filter((n) => inWindow(n.createdUtc, window)),
     );
+  }
+
+  async createAnnotation(input: AnnotationInput): Promise<void> {
+    this.createdAnnotations.push(structuredClone(input));
+    this.state.annotations.push({
+      createdUtc: input.createdUtc ?? new Date().toISOString(),
+      ...(input.author ? { author: input.author } : {}),
+      ...(input.object ? { object: input.object } : {}),
+      text: input.text,
+    });
   }
 
   /** Number of writes recorded so far (handy in idempotency assertions). */

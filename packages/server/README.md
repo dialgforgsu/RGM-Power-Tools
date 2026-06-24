@@ -5,7 +5,8 @@ RGM Power Tools from one place: check the Monitor connection, browse groups,
 manage [tags](../tagger/README.md), run the
 [health audit](../doctor/README.md) and
 [license/cost audit](../cost/README.md), generate an incident
-[post-mortem](../replay/README.md), and preview/apply
+[post-mortem](../replay/README.md), add timeline
+[annotations](../annotate/README.md), and preview/apply
 [alert config](../alert-config/README.md) — including tag-scoped applies.
 
 It reuses the same engine (`@rgm-power-tools/core`) and tool logic as the CLIs,
@@ -95,6 +96,7 @@ it is treated as sensitive by design:
 | `GET /api/doctor`          | —                         | installation health report       |
 | `GET /api/cost`            | `?add=<n>` (optional)     | license utilization + projection |
 | `GET /api/replay`          | `?from=&to=` or `?last=`  | markdown post-mortem + counts    |
+| `POST /api/annotate`       | `{ text, object?, author? }` | write a manual timeline annotation |
 
 ## License
 

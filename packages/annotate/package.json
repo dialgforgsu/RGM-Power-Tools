@@ -1,0 +1,37 @@
+{
+  "name": "@rgm-power-tools/monitor-annotate",
+  "version": "0.1.0",
+  "description": "Auto-annotate the Redgate Monitor timeline from deploy/CI webhooks — always have \"what changed?\" context",
+  "license": "MIT",
+  "type": "module",
+  "bin": {
+    "monitor-annotate": "./dist/cli.js"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run",
+    "dev": "node --import tsx src/cli.ts"
+  },
+  "dependencies": {
+    "@rgm-power-tools/core": "workspace:*",
+    "chalk": "^5.3.0",
+    "commander": "^12.1.0"
+  },
+  "devDependencies": {
+    "tsx": "^4.15.0",
+    "typescript": "^5.4.5",
+    "vitest": "^1.6.0"
+  }
+}

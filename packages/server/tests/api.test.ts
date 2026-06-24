@@ -269,6 +269,27 @@ describe('endpoints', () => {
     expect(res.status).toBe(400);
   });
 
+  it('adds a manual annotation', async () => {
+    const res = await handle(
+      req('POST', '/api/annotate', {
+        token: TOKEN,
+        body: { text: 'Deployed web v1.2.3', object: 'PROD-SQL-01' },
+      }),
+    );
+    expect(res.status).toBe(200);
+    expect((res.body as { created: boolean }).created).toBe(true);
+    expect(client.createdAnnotations).toHaveLength(1);
+    expect(client.createdAnnotations[0]!.text).toBe('Deployed web v1.2.3');
+    expect(client.createdAnnotations[0]!.object).toBe('PROD-SQL-01');
+  });
+
+  it('rejects an empty annotation with 400', async () => {
+    const res = await handle(
+      req('POST', '/api/annotate', { token: TOKEN, body: { text: '  ' } }),
+    );
+    expect(res.status).toBe(400);
+  });
+
   it('404s an unknown endpoint', async () => {
     const res = await handle(req('GET', '/api/nope', { token: TOKEN }));
     expect(res.status).toBe(404);
