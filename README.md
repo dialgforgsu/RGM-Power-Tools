@@ -5,6 +5,10 @@ Open-source CLIs (and a dashboard) that fill gaps in
 one engine — `@rgm-power-tools/core` — and the same connection details, so each
 works on its own or together.
 
+**▶ [Try the live demo](https://dialgforgsu.github.io/alertcode/)** — the real
+dashboard UI running against a simulated Monitor test environment, entirely in
+your browser (no backend, nothing sent anywhere). See [`docs/`](docs).
+
 ## The tools
 
 | Tool                                        | What it does                                                                                                                         |
