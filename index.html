@@ -40,6 +40,36 @@
         margin-left: 0.4rem;
         vertical-align: middle;
       }
+      /* Per-tool label shown under each section heading, so every card reads
+         as "this is tool X, here's what it does". */
+      .card > h2 {
+        margin-bottom: 0.25rem;
+      }
+      .tool-tag {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: baseline;
+        gap: 0.4rem 0.5rem;
+        margin: 0 0 0.85rem;
+        font-size: 0.8rem;
+        color: var(--muted);
+      }
+      .tool-tag code {
+        font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        font-size: 0.78rem;
+        color: var(--accent);
+        background: #0d1117;
+        border: 1px solid var(--border);
+        border-radius: 4px;
+        padding: 0.05rem 0.4rem;
+      }
+      .tool-tag a {
+        color: #6ea8fe;
+        text-decoration: none;
+      }
+      .tool-tag a:hover {
+        text-decoration: underline;
+      }
     </style>
   </head>
   <body>
@@ -47,8 +77,9 @@
       <strong>Live demo</strong> — this page runs the real dashboard UI against a
       <strong>simulated Redgate Monitor test environment</strong> baked into your
       browser. No backend, no real instance, nothing is sent anywhere. Every
-      button works; writes (apply, sync, annotate) mutate the in-memory demo
-      state only. Source:
+      tool below opens <strong>pre-populated</strong> with simulated data — one
+      section per tool. Every button works too; writes (apply, sync, annotate)
+      mutate the in-memory demo state only. Source:
       <a href="https://github.com/dialgforgsu/RGM-Power-Tools"
         >dialgforgsu/RGM-Power-Tools</a
       >.
@@ -66,6 +97,17 @@
     <main>
       <section class="card" id="status-card">
         <h2>Status</h2>
+        <p class="tool-tag">
+          <code>monitor-dashboard</code> +
+          <code>@rgm-power-tools/core</code>
+          <span
+            >— the web UI &amp; shared Monitor client every tool below runs
+            on.</span
+          >
+          <a href="https://github.com/dialgforgsu/RGM-Power-Tools/tree/main/packages/server"
+            >docs ↗</a
+          >
+        </p>
         <dl id="status-body">
           <div><dt>Monitor URL</dt><dd id="st-url">—</dd></div>
           <div><dt>Token</dt><dd id="st-token">—</dd></div>
@@ -76,6 +118,13 @@
 
       <section class="card">
         <h2>Groups</h2>
+        <p class="tool-tag">
+          <code>core</code>
+          <span
+            >— the live Monitor groups (and server counts) the suite operates
+            on.</span
+          >
+        </p>
         <table id="groups-table">
           <thead>
             <tr><th>Group</th><th>Servers</th></tr>
@@ -88,6 +137,17 @@
 
       <section class="card">
         <h2>Tags</h2>
+        <p class="tool-tag">
+          <code>monitor-tagger</code>
+          <span
+            >— a metadata overlay (owner, business unit, criticality, cost
+            center) on your groups. These tags become filter keys every tool can
+            use.</span
+          >
+          <a href="https://github.com/dialgforgsu/RGM-Power-Tools/tree/main/packages/tagger"
+            >docs ↗</a
+          >
+        </p>
         <div class="row">
           <button id="tags-load-btn" type="button">Load tags</button>
           <button id="tags-sync-btn" type="button">Sync from Monitor (dry run)</button>
@@ -100,6 +160,17 @@
 
       <section class="card">
         <h2>Annotate timeline</h2>
+        <p class="tool-tag">
+          <code>monitor-annotate</code>
+          <span
+            >— stamps "what changed?" onto the Monitor timeline. Try it: add a
+            note below, then re-generate the post-mortem in the next section — it
+            appears in the timeline.</span
+          >
+          <a href="https://github.com/dialgforgsu/RGM-Power-Tools/tree/main/packages/annotate"
+            >docs ↗</a
+          >
+        </p>
         <div class="row">
           <input id="annot-text" type="text" placeholder="What changed? (e.g. Deployed web v1.2.3)" />
           <input id="annot-object" type="text" placeholder="object (optional)" />
@@ -113,6 +184,17 @@
 
       <section class="card">
         <h2>Incident replay (post-mortem)</h2>
+        <p class="tool-tag">
+          <code>monitor-replay</code>
+          <span
+            >— turns an incident window into a pre-filled markdown post-mortem:
+            timeline, alerts, slow queries, backups and an analysis
+            scaffold.</span
+          >
+          <a href="https://github.com/dialgforgsu/RGM-Power-Tools/tree/main/packages/replay"
+            >docs ↗</a
+          >
+        </p>
         <div class="row">
           <label>Last <input id="replay-last" type="text" placeholder="e.g. 2h" value="2h" /></label>
           <span class="muted">or</span>
@@ -129,6 +211,16 @@
 
       <section class="card">
         <h2>License &amp; cost</h2>
+        <p class="tool-tag">
+          <code>monitor-cost</code>
+          <span
+            >— license utilization &amp; spend audit. Flags wasted slots you can
+            reclaim and projects the cost of onboarding more servers.</span
+          >
+          <a href="https://github.com/dialgforgsu/RGM-Power-Tools/tree/main/packages/cost"
+            >docs ↗</a
+          >
+        </p>
         <div class="row">
           <button id="cost-btn" type="button">Run cost audit</button>
           <label
@@ -142,6 +234,17 @@
 
       <section class="card">
         <h2>Health check (doctor)</h2>
+        <p class="tool-tag">
+          <code>monitor-doctor</code>
+          <span
+            >— "npm audit for Monitor": lints your install for silent servers,
+            alerts that page nobody, stale metrics and decommissioned servers
+            still holding licenses.</span
+          >
+          <a href="https://github.com/dialgforgsu/RGM-Power-Tools/tree/main/packages/doctor"
+            >docs ↗</a
+          >
+        </p>
         <div class="row">
           <button id="doctor-btn" type="button">Run health check</button>
           <span id="doctor-summary" class="muted"></span>
@@ -151,6 +254,18 @@
 
       <section class="card">
         <h2>Alert config — plan &amp; apply</h2>
+        <p class="tool-tag">
+          <code>monitor-config</code>
+          <span
+            >— "Terraform for Monitor alerts": alert settings as
+            version-controlled YAML. Shows the diff vs live, then applies it
+            (dry-run until confirmed). Apply once and the next plan is
+            clean.</span
+          >
+          <a href="https://github.com/dialgforgsu/RGM-Power-Tools/tree/main/packages/alert-config"
+            >docs ↗</a
+          >
+        </p>
         <div class="row">
           <label
             >Tag filters

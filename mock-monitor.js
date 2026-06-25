@@ -627,7 +627,11 @@
 
   // --- Bootstrap ------------------------------------------------------------
   // app.js loads after us and ends in an idle state. Once it's parsed, connect
-  // and load groups so the demo opens "live".
+  // and then drive *every* tool in sequence so the demo opens fully populated —
+  // a visitor sees each section showing off real-looking output without having
+  // to click anything. Each step calls the unmodified app.js action, so the
+  // simulated data flows through the genuine front-end exactly as a real session
+  // would. The short stagger makes the Log read like a live working session.
   window.addEventListener('load', function () {
     try {
       if (!sessionStorage.getItem('rgm-dashboard-token')) {
@@ -636,10 +640,28 @@
     } catch {
       /* sessionStorage may be unavailable; the mock ignores auth anyway */
     }
-    if (typeof window.refreshStatus === 'function') {
-      Promise.resolve(window.refreshStatus()).then(function () {
-        if (typeof window.loadGroups === 'function') window.loadGroups();
-      });
-    }
+
+    const call = (fn, ...args) =>
+      typeof window[fn] === 'function'
+        ? Promise.resolve(window[fn](...args)).catch(() => {})
+        : Promise.resolve();
+    const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+
+    // Run each tool one after another with a small gap so the cascade is
+    // visible. Order mirrors the on-page sections, top to bottom.
+    (async function showEverything() {
+      await call('refreshStatus'); // monitor-dashboard / core — connect
+      await call('loadGroups'); // core — Monitor groups
+      await wait(150);
+      await call('loadTags'); // monitor-tagger — metadata overlay
+      await wait(150);
+      await call('runReplay'); // monitor-replay — post-mortem (uses defaults)
+      await wait(150);
+      await call('runCost', 10); // monitor-cost — audit + onboarding projection
+      await wait(150);
+      await call('runDoctor'); // monitor-doctor — install linter
+      await wait(150);
+      await call('showPlan'); // monitor-config — alert-config drift plan
+    })();
   });
 })();
