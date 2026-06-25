@@ -7,18 +7,142 @@ works on its own or together.
 
 ## The tools
 
-| Tool | What it does |
-| ---- | ------------ |
-| **[monitor-config](packages/alert-config)** | Alert settings as version-controlled YAML — `export` / `diff` / `apply` / `validate`. "Terraform for Monitor alerts." |
-| **[monitor-tagger](packages/tagger)** | A metadata layer (owner, business unit, criticality, cost center) over groups, as YAML. Tags become filter keys every tool can use. |
-| **[monitor-doctor](packages/doctor)** | A linter for your install — silent servers, alerts with no notifications, stale metrics, wasted licenses. "`npm audit` for Monitor." |
-| **[monitor-cost](packages/cost)** | License utilization & spend audit; flags wasted slots and projects onboarding cost. |
-| **[monitor-replay](packages/replay)** | Forensic post-mortem generator — an incident window becomes a pre-filled markdown report. |
-| **[monitor-annotate](packages/annotate)** | Auto-annotates the timeline from deploy/CI webhooks, so incidents always have "what changed?" context. |
-| **[monitor-dashboard](packages/server)** | Self-hostable web UI + JSON API that drives all of the above. |
-| **[core](packages/core)** | Shared Monitor client, auth, types, and tag engine. |
+| Tool                                        | What it does                                                                                                                         |
+| ------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| **[monitor-config](packages/alert-config)** | Alert settings as version-controlled YAML — `export` / `diff` / `apply` / `validate`. "Terraform for Monitor alerts."                |
+| **[monitor-tagger](packages/tagger)**       | A metadata layer (owner, business unit, criticality, cost center) over groups, as YAML. Tags become filter keys every tool can use.  |
+| **[monitor-doctor](packages/doctor)**       | A linter for your install — silent servers, alerts with no notifications, stale metrics, wasted licenses. "`npm audit` for Monitor." |
+| **[monitor-cost](packages/cost)**           | License utilization & spend audit; flags wasted slots and projects onboarding cost.                                                  |
+| **[monitor-replay](packages/replay)**       | Forensic post-mortem generator — an incident window becomes a pre-filled markdown report.                                            |
+| **[monitor-annotate](packages/annotate)**   | Auto-annotates the timeline from deploy/CI webhooks, so incidents always have "what changed?" context.                               |
+| **[monitor-dashboard](packages/server)**    | Self-hostable web UI + JSON API that drives all of the above.                                                                        |
+| **[core](packages/core)**                   | Shared Monitor client, auth, types, and tag engine.                                                                                  |
 
 Each tool's README has its full command reference.
+
+## Example output
+
+A taste of what each tool prints. Terminal output is colorized; shown here in
+plain text.
+
+### monitor-config
+
+```text
+$ monitor-config diff
+Diff: monitor-config.yaml -> live
+
+~ group "Production"
+  ~ cpu_utilization.thresholds.high.value: 90 -> 85
+  + cpu_utilization.notifications.slack = #prod-alerts
++ group "Staging" (only in live)
+
+2 added, 1 changed, 0 removed.
+```
+
+Exit code is `1` when there are differences, so `diff` slots straight into CI.
+
+### monitor-tagger
+
+```text
+$ monitor-tagger list --filter criticality=high
+┌─────────────┬──────────┬───────────────┬─────────────┬─────────────┐
+│ Group       │ Owner    │ Business Unit │ Criticality │ Cost Center │
+├─────────────┼──────────┼───────────────┼─────────────┼─────────────┤
+│ Production  │ dba-team │ Payments      │ high        │ 4200        │
+│ Checkout    │ payments │ Payments      │ high        │ 4200        │
+└─────────────┴──────────┴───────────────┴─────────────┴─────────────┘
+```
+
+### monitor-doctor
+
+```text
+$ monitor-doctor
+error    Enabled alert has no notification channel — PROD-SQL-02 / cpu_utilization
+        This alert will fire but page nobody.
+        [alert-no-notification]
+warning  Server has never raised an alert — DEV-SQL-01
+        Likely missing alert configuration — a silent blind spot.
+        [never-alerting]
+error    Decommissioned server still holding a license — OLD-SQL-07
+        Stopped 92 days ago but still consuming a monitoring slot.
+        [decommissioned-licensed]
+
+3 issue(s): 2 error(s), 1 warning(s).
+```
+
+### monitor-cost
+
+```text
+$ monitor-cost --cost-per-slot 600 --currency USD
+License utilization
+  42/50 slots used (84%), 8 free.
+  License cost: 30,000 USD.
+
+5 wasted slot(s) = 3,000 USD reclaimable
+Licensed servers with no data in 30+ days:
+  • OLD-SQL-07 (Stopped, idle 92 days)
+  • TEST-DB-02 (Active, never sent data)
+
+$ monitor-cost project --add 10 --cost-per-slot 600 --currency USD
+Projection: onboard 10 server(s)
+  Free slots available now: 8.
+  Needs 2 new slot(s).
+  Additional spend: 1,200 USD.
+  Projected license cost: 31,200 USD.
+```
+
+### monitor-replay
+
+Writes a pre-populated markdown post-mortem to stdout (truncated here):
+
+```text
+$ monitor-replay --last 2h --title "PROD checkout outage"
+# Post-mortem: PROD checkout outage
+
+> Generated 2026-06-24T14:32:00Z by `monitor-replay`.
+> Window: **2026-06-24T12:32:00Z → 2026-06-24T14:32:00Z** (2h).
+
+## Summary
+
+- **Alerts:** 3
+- **Slow queries:** 7 (slowest 8.4 s)
+- **Backups:** 2 (**1 failed**)
+- **Annotations:** 1
+
+## Timeline
+
+| Time (UTC) | Event | Detail |
+| --- | --- | --- |
+| 2026-06-24T12:48:11Z | Annotation | ci-bot: Deployed checkout v2.4.0 to PROD |
+| 2026-06-24T12:53:02Z | Alert raised | CPU utilization on PROD-SQL-01 (high) |
+| 2026-06-24T13:21:30Z | Alert cleared | CPU utilization on PROD-SQL-01 |
+
+… alert/slow-query/backup tables and an Analysis scaffold (Impact, Root cause,
+Resolution, Action items, Lessons) follow.
+```
+
+### monitor-annotate
+
+```text
+$ monitor-annotate add --text "Deployed web v1.2.3 to PROD" --object PROD-SQL-01
+✓ Annotation added to the Monitor timeline.
+
+$ monitor-annotate serve
+monitor-annotate receiver listening on http://0.0.0.0:4575
+Endpoints: POST /webhook/{github|gitlab|generic}, GET /health
+⚠  Put this behind TLS / a reverse proxy — webhooks carry the shared secret.
+```
+
+### monitor-dashboard
+
+```text
+$ monitor-dashboard --token "$(openssl rand -hex 24)"
+RGM Power Tools dashboard listening on http://127.0.0.1:4570 (token auth enabled)
+Working directory: /home/dba/monitor-config
+```
+
+Then open the URL — the web UI drives every tool above. `core` has no output of
+its own; it's the shared library the tools are built on.
 
 ## Download / Windows install
 
@@ -26,10 +150,10 @@ Prefer not to install Node? The **dashboard** ships as a self-contained Windows
 build — Node runtime, server, and web UI fused into one `.exe`. Two ways to get
 it, both produced by `pnpm package` into `packaging/dist/`:
 
-| Option | What it is |
-| ------ | ---------- |
-| **`monitor-dashboard-setup.exe`** | A simple install wizard — installs the app, adds Start Menu / desktop shortcuts, and launches the dashboard (opens your browser) on finish. |
-| **`monitor-dashboard-portable.zip`** | No install: unzip and run `monitor-dashboard.exe`. No admin rights needed. |
+| Option                               | What it is                                                                                                                                  |
+| ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| **`monitor-dashboard-setup.exe`**    | A simple install wizard — installs the app, adds Start Menu / desktop shortcuts, and launches the dashboard (opens your browser) on finish. |
+| **`monitor-dashboard-portable.zip`** | No install: unzip and run `monitor-dashboard.exe`. No admin rights needed.                                                                  |
 
 ```bash
 pnpm install
