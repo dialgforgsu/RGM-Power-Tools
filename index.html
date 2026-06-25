@@ -145,6 +145,74 @@
         left: auto;
         right: 0.55rem;
       }
+
+      /* --- 3-column board + drag-to-reorder ------------------------------ */
+      /* Override the dashboard's single-column stack (styles.css) with a
+         multi-column board. Cards align to the top of their row rather than
+         stretching, so a short card next to a tall one stays compact. */
+      main {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        align-items: start;
+        max-width: 1500px;
+      }
+      @media (max-width: 1100px) {
+        main {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+      }
+      @media (max-width: 720px) {
+        main {
+          grid-template-columns: minmax(0, 1fr);
+        }
+      }
+
+      .card {
+        position: relative;
+      }
+      /* The grab point. The whole card isn't draggable so form fields inside
+         stay clickable/selectable; you drag from this grip. */
+      .drag-handle {
+        position: absolute;
+        top: 0.55rem;
+        right: 0.6rem;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 1.4rem;
+        height: 1.4rem;
+        color: var(--muted);
+        font-size: 0.95rem;
+        line-height: 1;
+        border-radius: 4px;
+        cursor: grab;
+        user-select: none;
+        opacity: 0.5;
+        transition:
+          opacity 0.12s ease,
+          color 0.12s ease,
+          background 0.12s ease;
+      }
+      .card:hover .drag-handle {
+        opacity: 1;
+      }
+      .drag-handle:hover {
+        color: var(--accent);
+        background: #0d1117;
+      }
+      .drag-handle:active {
+        cursor: grabbing;
+      }
+      .card.dragging {
+        opacity: 0.45;
+        outline: 2px dashed var(--accent);
+        outline-offset: -2px;
+      }
+      .card.drop-before {
+        box-shadow: -4px 0 0 var(--accent);
+      }
+      .card.drop-after {
+        box-shadow: 4px 0 0 var(--accent);
+      }
     </style>
   </head>
   <body>
@@ -156,12 +224,13 @@
         <button id="token-btn" type="button">Set token</button>
         <span class="info" tabindex="0" role="note" aria-label="Why this exists">i
           <span class="info-tip info-tip--right"
-            ><strong>Why a separate token.</strong> The dashboard never holds
-            the Monitor API key. It authenticates to the RGM server with its own
-            bearer token, kept in <code>sessionStorage</code> for this tab only,
-            so the powerful Monitor credential stays server-side and a leaked tab
-            can't drive Monitor directly. Nothing connects on page load — each
-            tool connects on demand the first time you use it.</span
+            ><strong>Why it matters:</strong> if this tab is ever compromised,
+            you don't want it holding the keys to your whole monitoring estate.
+            So the dashboard never sees Monitor's API key — it uses its own
+            scoped bearer token, kept in <code>sessionStorage</code> for this tab
+            only, while the powerful credential stays server-side. Nothing
+            connects on page load; each tool connects on demand the first time
+            you use it.</span
           ></span
         >
       </div>
@@ -171,12 +240,12 @@
       <section class="card" id="status-card">
         <h2>Status<span class="info" tabindex="0" role="note" aria-label="Logic & why">i
           <span class="info-tip"
-            ><strong>What it proves.</strong> Pings <code>/api/status</code> to
-            confirm the RGM server can actually reach Monitor, and echoes the
-            base URL, a redacted token hint and the working dir.
-            <strong>Why it matters:</strong> it's the cheapest "is the wiring
-            right?" check — every tool below depends on this same server →
-            Monitor connection, so if Status is green the rest can run.</span
+            ><strong>Why it matters:</strong> every tool below rides the same
+            server&nbsp;→&nbsp;Monitor connection, so this is your one cheap "is
+            the wiring right?" check before you trust anything else on the page.
+            Green here means the rest can run. It pings <code>/api/status</code>
+            and echoes the base URL, a redacted token hint and the working
+            dir.</span
           ></span
         ></h2>
         <p class="tool-tag">
@@ -201,12 +270,12 @@
       <section class="card">
         <h2>Groups<span class="info" tabindex="0" role="note" aria-label="Logic & why">i
           <span class="info-tip"
-            ><strong>What it is.</strong> Reads SQL Monitor's group tree and the
-            server count under each group. <strong>Why it's here:</strong> every
-            other tool scopes its work to groups, so this is the shared inventory
-            the whole suite reasons about — loading it both confirms
-            connectivity and gives you the exact group names you'll filter on
-            elsewhere (tags, cost, alert config).</span
+            ><strong>Why it matters:</strong> groups are the unit every other
+            tool acts on — cost, doctor, tags and alert filters all key off these
+            names. Get the inventory wrong and every downstream result is scoped
+            wrong too. Loading it confirms connectivity and hands you the exact
+            names you'll filter on. It reads SQL Monitor's group tree and the
+            server count under each.</span
           ></span
         ></h2>
         <p class="tool-tag">
@@ -229,15 +298,14 @@
       <section class="card">
         <h2>Tags<span class="info" tabindex="0" role="note" aria-label="Logic & why">i
           <span class="info-tip"
-            ><strong>The logic.</strong> Monitor has no first-class metadata, so
-            the tagger keeps a local YAML overlay (owner, business unit,
-            criticality, cost center) keyed by group. "Sync from Monitor"
-            reconciles groups that were added or removed — dry-run shows the
-            delta, "Sync &amp; write" persists it. <strong>Why dry-run
-            first:</strong> a write changes source-of-truth config, and these
-            tags become the filter keys the cost, doctor and alert-config tools
-            key off (e.g. <code>criticality=high</code>), so you see the change
-            before committing it.</span
+            ><strong>Why it matters:</strong> Monitor has no native metadata,
+            yet you constantly want to act on "everything
+            <code>criticality=high</code>" or "owned by team X". Tags are that
+            overlay (owner, business unit, criticality, cost center) — and they
+            become the filter keys the cost, doctor and alert-config tools rely
+            on. Because a write changes source-of-truth config, you sync dry-run
+            first to preview the delta, then "Sync &amp; write" to persist
+            it.</span
           ></span
         ></h2>
         <p class="tool-tag">
@@ -264,13 +332,13 @@
       <section class="card">
         <h2>Annotate timeline<span class="info" tabindex="0" role="note" aria-label="Logic & why">i
           <span class="info-tip"
-            ><strong>What it does.</strong> Posts a timestamped note onto
-            Monitor's timeline, optionally pinned to a specific object.
-            <strong>Why it's useful:</strong> it turns tribal knowledge ("we
-            deployed at 14:03") into data on the same time axis as the metrics,
-            so when you replay an incident the <em>cause</em> sits right next to
-            the <em>effect</em>. These are manual notes; automated deploy/CI
-            notes arrive via the separate webhook receiver.</span
+            ><strong>Why it matters:</strong> when you replay an incident later,
+            the hardest question is "what did we change right before it broke?"
+            Annotations put that human context ("deployed web v1.2.3") on the
+            same timeline as the metrics, so <em>cause</em> sits right next to
+            <em>effect</em> instead of living in someone's memory. These are
+            manual notes; automated deploy/CI notes arrive via the separate
+            webhook receiver.</span
           ></span
         ></h2>
         <p class="tool-tag">
@@ -298,14 +366,13 @@
       <section class="card">
         <h2>Incident replay (post-mortem)<span class="info" tabindex="0" role="note" aria-label="Logic & why">i
           <span class="info-tip"
-            ><strong>The logic.</strong> Given a window (last <code>2h</code>, or
-            an explicit from/to), it pulls the alerts, slow queries, backups and
-            annotations from that span and assembles a markdown post-mortem —
-            timeline plus an analysis scaffold. <strong>Why:</strong> the worst
-            time to reconstruct what happened is right after an incident, so
-            replay does the evidence-gathering for you and the write-up starts
-            ~80% done. It pairs with Annotate — notes you added show up in the
-            timeline here.</span
+            ><strong>Why it matters:</strong> the worst time to reconstruct an
+            incident is right after one — memories are fuzzy and the clock is
+            ticking. Replay does the evidence-gathering for you: give it a window
+            (last <code>2h</code>, or an explicit from/to) and it pulls the
+            alerts, slow queries, backups and annotations into a markdown
+            post-mortem that's ~80% written before you type a word. Pairs with
+            Annotate — notes you added show up in the timeline here.</span
           ></span
         ></h2>
         <p class="tool-tag">
@@ -336,14 +403,12 @@
       <section class="card">
         <h2>License &amp; cost<span class="info" tabindex="0" role="note" aria-label="Logic & why">i
           <span class="info-tip"
-            ><strong>What it computes.</strong> Compares used vs total license
-            slots, flags servers that are idle or decommissioned yet still
-            holding a slot, and prices the waste; "Project" estimates the cost of
-            onboarding <em>N</em> more servers against your free slots.
-            <strong>Why it matters:</strong> SQL Monitor licenses by slot, and
-            slots leak silently as servers are retired — this surfaces
-            reclaimable spend and answers "can we fit the next project without
-            buying more?"</span
+            ><strong>Why it matters:</strong> SQL Monitor licenses by slot, and
+            slots leak silently as servers are retired — so you keep paying for
+            monitoring nobody uses. This audit flags idle or decommissioned
+            servers still holding a slot, prices the waste you can reclaim, and
+            "Project" answers the budgeting question: can the next <em>N</em>
+            servers fit in free slots, or do we need to buy more?</span
           ></span
         ></h2>
         <p class="tool-tag">
@@ -370,14 +435,13 @@
       <section class="card">
         <h2>Health check (doctor)<span class="info" tabindex="0" role="note" aria-label="Logic & why">i
           <span class="info-tip"
-            ><strong>What it checks.</strong> Runs a battery of lint rules over
-            the install — silent/never-reporting servers, alerts routed to
-            nobody, stale metrics, decommissioned servers still licensed — and
-            grades each finding error / warning / info.
-            <strong>Why:</strong> monitoring misconfig is invisible until the
-            night it matters (the alert that never fired). Doctor makes those
-            latent gaps visible up front, the way <code>npm audit</code> does for
-            dependencies.</span
+            ><strong>Why it matters:</strong> monitoring misconfig is invisible
+            until the night it bites — the alert that paged nobody, the server
+            that quietly stopped reporting. Doctor surfaces those latent gaps
+            <em>before</em> they cost you an outage: silent servers, alerts
+            routed nowhere, stale metrics, decommissioned-but-licensed servers —
+            each graded error / warning / info, the way <code>npm audit</code>
+            does for dependencies.</span
           ></span
         ></h2>
         <p class="tool-tag">
@@ -401,14 +465,13 @@
       <section class="card">
         <h2>Alert config — plan &amp; apply<span class="info" tabindex="0" role="note" aria-label="Logic & why">i
           <span class="info-tip"
-            ><strong>The model.</strong> Alert thresholds and settings live as
-            version-controlled YAML. "Show plan" diffs that desired config
-            against what's live in Monitor; "Apply" only mutates Monitor after
-            you confirm, and tag filters scope the blast radius.
-            <strong>Why like Terraform:</strong> GUI-clicked alert config drifts
-            and isn't reviewable — treating it as code makes every change
-            diffable, reviewable and repeatable, and dry-run-by-default prevents
-            a fat-fingered mass edit.</span
+            ><strong>Why it matters:</strong> alert settings clicked into a GUI
+            drift over time and can't be reviewed or rolled back — nobody knows
+            who changed what threshold, or why. Treating them as
+            version-controlled YAML fixes that: "Show plan" previews the diff vs
+            live, "Apply" only mutates Monitor on confirm, and tag filters cap
+            the blast radius. Dry-run-by-default keeps a fat-fingered mass edit
+            from going live.</span
           ></span
         ></h2>
         <p class="tool-tag">
@@ -441,11 +504,11 @@
       <section class="card">
         <h2>Log<span class="info" tabindex="0" role="note" aria-label="Logic & why">i
           <span class="info-tip"
-            ><strong>What it is.</strong> An append-only, client-side activity
-            log: every tool action and its result or error is timestamped here.
-            <strong>Why:</strong> these tools make real changes to Monitor, so an
-            at-a-glance audit trail of what ran and what came back keeps you
-            oriented without opening the browser console.</span
+            ><strong>Why it matters:</strong> these tools make real changes to
+            Monitor, so you want proof of what ran and what came back. The Log is
+            an append-only, timestamped audit trail of every action and its
+            result or error — there at a glance, so you're never guessing
+            whether something took effect, no browser console required.</span
           ></span
         ></h2>
         <pre id="log" class="log"></pre>
@@ -455,5 +518,152 @@
     <!-- Order matters: mock-monitor.js must patch fetch before app.js runs. -->
     <script src="mock-monitor.js"></script>
     <script src="packages/server/public/app.js"></script>
+
+    <!--
+      Demo-only: arrange the cards as a draggable 3-column board. Each card
+      gets a grip handle; drag it to reorder. The chosen order is remembered
+      in localStorage so it survives a reload. None of this touches the real
+      dashboard assets — it only rearranges DOM nodes the app already wired up.
+    -->
+    <script>
+      (function () {
+        'use strict';
+        const ORDER_KEY = 'rgm-demo-card-order';
+        const board = document.querySelector('main');
+        if (!board) return;
+        const cards = Array.from(board.querySelectorAll('.card'));
+
+        // Stable key per card from its heading's leading text node only —
+        // NOT h2.textContent, which would also slurp the info button's "i" and
+        // its whole tooltip. e.g. "License & cost" → "license-cost".
+        const keyOf = (card) => {
+          const h = card.querySelector('h2');
+          const lead = h && h.firstChild;
+          const text =
+            lead && lead.nodeType === 3 && lead.textContent.trim()
+              ? lead.textContent
+              : card.id || '';
+          return text
+            .trim()
+            .toLowerCase()
+            .replace(/[^a-z0-9]+/g, '-')
+            .replace(/^-|-$/g, '');
+        };
+        cards.forEach((c) => c.setAttribute('data-key', keyOf(c)));
+
+        // Restore a saved order, appending any cards not in it (e.g. new ones).
+        try {
+          const saved = JSON.parse(localStorage.getItem(ORDER_KEY) || '[]');
+          if (Array.isArray(saved) && saved.length) {
+            const byKey = new Map(cards.map((c) => [c.getAttribute('data-key'), c]));
+            saved.forEach((k) => {
+              const c = byKey.get(k);
+              if (c) board.appendChild(c);
+            });
+          }
+        } catch {
+          /* ignore corrupt saved order */
+        }
+
+        const saveOrder = () => {
+          const order = Array.from(board.querySelectorAll('.card')).map((c) =>
+            c.getAttribute('data-key'),
+          );
+          try {
+            localStorage.setItem(ORDER_KEY, JSON.stringify(order));
+          } catch {
+            /* storage unavailable — order just won't persist */
+          }
+        };
+
+        let dragged = null;
+
+        const clearMarkers = () => {
+          board
+            .querySelectorAll('.drop-before, .drop-after')
+            .forEach((c) => c.classList.remove('drop-before', 'drop-after'));
+        };
+
+        // Add a grip handle to each card and wire drag from it only, so the
+        // buttons/inputs inside the card keep working normally.
+        cards.forEach((card) => {
+          const handle = document.createElement('span');
+          handle.className = 'drag-handle';
+          handle.setAttribute('draggable', 'true');
+          handle.setAttribute('role', 'button');
+          handle.setAttribute('tabindex', '0');
+          handle.setAttribute('aria-label', 'Drag to reorder this section');
+          handle.title = 'Drag to reorder';
+          handle.textContent = '☰'; // ☰
+          card.appendChild(handle);
+
+          handle.addEventListener('dragstart', (e) => {
+            dragged = card;
+            card.classList.add('dragging');
+            e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.setData('text/plain', card.getAttribute('data-key'));
+            // Use the whole card as the drag image, not just the grip.
+            if (e.dataTransfer.setDragImage) {
+              e.dataTransfer.setDragImage(card, 20, 20);
+            }
+          });
+          handle.addEventListener('dragend', () => {
+            if (dragged) dragged.classList.remove('dragging');
+            dragged = null;
+            clearMarkers();
+          });
+        });
+
+        // Decide insert position from where the pointer is relative to the
+        // nearest card's centre — works for a 2-D grid, not just a column.
+        const placeRelativeTo = (x, y) => {
+          let closest = null;
+          let best = Infinity;
+          board.querySelectorAll('.card:not(.dragging)').forEach((c) => {
+            const b = c.getBoundingClientRect();
+            const dx = x - (b.left + b.width / 2);
+            const dy = y - (b.top + b.height / 2);
+            const dist = Math.hypot(dx, dy);
+            if (dist < best) {
+              best = dist;
+              closest = { card: c, dx, dy, halfH: b.height / 2 };
+            }
+          });
+          return closest;
+        };
+
+        board.addEventListener('dragover', (e) => {
+          if (!dragged) return;
+          e.preventDefault();
+          e.dataTransfer.dropEffect = 'move';
+          const target = placeRelativeTo(e.clientX, e.clientY);
+          clearMarkers();
+          if (!target || target.card === dragged) return;
+          // Before if the pointer is above the card, or left of centre within
+          // roughly the same row; otherwise after.
+          const before =
+            target.dy < -target.halfH ||
+            (Math.abs(target.dy) <= target.halfH && target.dx < 0);
+          target.card.classList.add(before ? 'drop-before' : 'drop-after');
+        });
+
+        board.addEventListener('drop', (e) => {
+          if (!dragged) return;
+          e.preventDefault();
+          const target = placeRelativeTo(e.clientX, e.clientY);
+          if (target && target.card !== dragged) {
+            const before =
+              target.dy < -target.halfH ||
+              (Math.abs(target.dy) <= target.halfH && target.dx < 0);
+            board.insertBefore(
+              dragged,
+              before ? target.card : target.card.nextSibling,
+            );
+          }
+          clearMarkers();
+          saveOrder();
+        });
+      })();
+    </script>
   </body>
 </html>
