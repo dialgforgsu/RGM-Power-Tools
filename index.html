@@ -14,19 +14,6 @@
     <link rel="stylesheet" href="packages/server/public/styles.css" />
     <style>
       /* Demo-only chrome. The dashboard's own styles live in styles.css. */
-      .demo-banner {
-        background: linear-gradient(90deg, #1f6feb22, #3fb95022);
-        border-bottom: 1px solid var(--border);
-        padding: 0.6rem 1.5rem;
-        font-size: 0.85rem;
-        color: var(--text);
-      }
-      .demo-banner strong {
-        color: var(--accent);
-      }
-      .demo-banner a {
-        color: #6ea8fe;
-      }
       .demo-pill {
         display: inline-block;
         font-size: 0.7rem;
@@ -73,18 +60,6 @@
     </style>
   </head>
   <body>
-    <div class="demo-banner">
-      <strong>Live demo</strong> — this page runs the real dashboard UI against a
-      <strong>simulated Redgate Monitor test environment</strong> baked into your
-      browser. No backend, no real instance, nothing is sent anywhere. Every
-      tool below opens <strong>pre-populated</strong> with simulated data — one
-      section per tool. Every button works too; writes (apply, sync, annotate)
-      mutate the in-memory demo state only. Source:
-      <a href="https://github.com/dialgforgsu/RGM-Power-Tools"
-        >dialgforgsu/RGM-Power-Tools</a
-      >.
-    </div>
-
     <header>
       <h1>RGM Power Tools <span class="demo-pill">demo</span></h1>
       <div id="conn" class="conn">
