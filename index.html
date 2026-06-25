@@ -57,6 +57,94 @@
       .tool-tag a:hover {
         text-decoration: underline;
       }
+      /* Informational "i" buttons. Each one reveals, on hover or keyboard
+         focus, the logic & rationale behind that tool — the "why", not just
+         the "what" the tool-tag already gives. Pure CSS, no JS. */
+      .info {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 1.05rem;
+        height: 1.05rem;
+        margin-left: 0.45rem;
+        border: 1px solid var(--border);
+        border-radius: 50%;
+        font-family: Georgia, 'Times New Roman', serif;
+        font-size: 0.72rem;
+        font-style: italic;
+        font-weight: 700;
+        line-height: 1;
+        color: var(--muted);
+        background: #0d1117;
+        cursor: help;
+        vertical-align: middle;
+        user-select: none;
+      }
+      .info:hover,
+      .info:focus {
+        border-color: var(--accent);
+        color: var(--accent);
+        outline: none;
+      }
+      .info-tip {
+        position: absolute;
+        top: calc(100% + 9px);
+        left: 0;
+        z-index: 30;
+        width: 22rem;
+        max-width: 78vw;
+        padding: 0.65rem 0.75rem;
+        background: #0d1117;
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        box-shadow: 0 10px 28px rgba(0, 0, 0, 0.45);
+        font-family:
+          system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial,
+          sans-serif;
+        font-size: 0.78rem;
+        font-style: normal;
+        font-weight: 400;
+        line-height: 1.5;
+        letter-spacing: normal;
+        text-transform: none;
+        color: var(--text);
+        opacity: 0;
+        visibility: hidden;
+        transform: translateY(-3px);
+        transition:
+          opacity 0.12s ease,
+          transform 0.12s ease;
+        pointer-events: none;
+      }
+      .info-tip::before {
+        content: '';
+        position: absolute;
+        bottom: 100%;
+        left: 0.55rem;
+        border: 6px solid transparent;
+        border-bottom-color: var(--border);
+      }
+      .info-tip strong {
+        color: var(--accent);
+        font-weight: 600;
+      }
+      .info:hover .info-tip,
+      .info:focus .info-tip {
+        opacity: 1;
+        visibility: visible;
+        transform: translateY(0);
+      }
+      /* Anchored to a control on the right edge (the connection indicator),
+         so the panel opens leftward and stays on-screen. */
+      .info-tip.info-tip--right {
+        left: auto;
+        right: 0;
+      }
+      .info-tip.info-tip--right::before {
+        left: auto;
+        right: 0.55rem;
+      }
     </style>
   </head>
   <body>
@@ -66,12 +154,31 @@
         <span id="conn-dot" class="dot"></span>
         <span id="conn-text">Not connected</span>
         <button id="token-btn" type="button">Set token</button>
+        <span class="info" tabindex="0" role="note" aria-label="Why this exists">i
+          <span class="info-tip info-tip--right"
+            ><strong>Why a separate token.</strong> The dashboard never holds
+            the Monitor API key. It authenticates to the RGM server with its own
+            bearer token, kept in <code>sessionStorage</code> for this tab only,
+            so the powerful Monitor credential stays server-side and a leaked tab
+            can't drive Monitor directly. Nothing connects on page load — each
+            tool connects on demand the first time you use it.</span
+          ></span
+        >
       </div>
     </header>
 
     <main>
       <section class="card" id="status-card">
-        <h2>Status</h2>
+        <h2>Status<span class="info" tabindex="0" role="note" aria-label="Logic & why">i
+          <span class="info-tip"
+            ><strong>What it proves.</strong> Pings <code>/api/status</code> to
+            confirm the RGM server can actually reach Monitor, and echoes the
+            base URL, a redacted token hint and the working dir.
+            <strong>Why it matters:</strong> it's the cheapest "is the wiring
+            right?" check — every tool below depends on this same server →
+            Monitor connection, so if Status is green the rest can run.</span
+          ></span
+        ></h2>
         <p class="tool-tag">
           <code>monitor-dashboard</code> +
           <code>@rgm-power-tools/core</code>
@@ -92,7 +199,16 @@
       </section>
 
       <section class="card">
-        <h2>Groups</h2>
+        <h2>Groups<span class="info" tabindex="0" role="note" aria-label="Logic & why">i
+          <span class="info-tip"
+            ><strong>What it is.</strong> Reads SQL Monitor's group tree and the
+            server count under each group. <strong>Why it's here:</strong> every
+            other tool scopes its work to groups, so this is the shared inventory
+            the whole suite reasons about — loading it both confirms
+            connectivity and gives you the exact group names you'll filter on
+            elsewhere (tags, cost, alert config).</span
+          ></span
+        ></h2>
         <p class="tool-tag">
           <code>core</code>
           <span
@@ -111,7 +227,19 @@
       </section>
 
       <section class="card">
-        <h2>Tags</h2>
+        <h2>Tags<span class="info" tabindex="0" role="note" aria-label="Logic & why">i
+          <span class="info-tip"
+            ><strong>The logic.</strong> Monitor has no first-class metadata, so
+            the tagger keeps a local YAML overlay (owner, business unit,
+            criticality, cost center) keyed by group. "Sync from Monitor"
+            reconciles groups that were added or removed — dry-run shows the
+            delta, "Sync &amp; write" persists it. <strong>Why dry-run
+            first:</strong> a write changes source-of-truth config, and these
+            tags become the filter keys the cost, doctor and alert-config tools
+            key off (e.g. <code>criticality=high</code>), so you see the change
+            before committing it.</span
+          ></span
+        ></h2>
         <p class="tool-tag">
           <code>monitor-tagger</code>
           <span
@@ -134,7 +262,17 @@
       </section>
 
       <section class="card">
-        <h2>Annotate timeline</h2>
+        <h2>Annotate timeline<span class="info" tabindex="0" role="note" aria-label="Logic & why">i
+          <span class="info-tip"
+            ><strong>What it does.</strong> Posts a timestamped note onto
+            Monitor's timeline, optionally pinned to a specific object.
+            <strong>Why it's useful:</strong> it turns tribal knowledge ("we
+            deployed at 14:03") into data on the same time axis as the metrics,
+            so when you replay an incident the <em>cause</em> sits right next to
+            the <em>effect</em>. These are manual notes; automated deploy/CI
+            notes arrive via the separate webhook receiver.</span
+          ></span
+        ></h2>
         <p class="tool-tag">
           <code>monitor-annotate</code>
           <span
@@ -158,7 +296,18 @@
       </section>
 
       <section class="card">
-        <h2>Incident replay (post-mortem)</h2>
+        <h2>Incident replay (post-mortem)<span class="info" tabindex="0" role="note" aria-label="Logic & why">i
+          <span class="info-tip"
+            ><strong>The logic.</strong> Given a window (last <code>2h</code>, or
+            an explicit from/to), it pulls the alerts, slow queries, backups and
+            annotations from that span and assembles a markdown post-mortem —
+            timeline plus an analysis scaffold. <strong>Why:</strong> the worst
+            time to reconstruct what happened is right after an incident, so
+            replay does the evidence-gathering for you and the write-up starts
+            ~80% done. It pairs with Annotate — notes you added show up in the
+            timeline here.</span
+          ></span
+        ></h2>
         <p class="tool-tag">
           <code>monitor-replay</code>
           <span
@@ -185,7 +334,18 @@
       </section>
 
       <section class="card">
-        <h2>License &amp; cost</h2>
+        <h2>License &amp; cost<span class="info" tabindex="0" role="note" aria-label="Logic & why">i
+          <span class="info-tip"
+            ><strong>What it computes.</strong> Compares used vs total license
+            slots, flags servers that are idle or decommissioned yet still
+            holding a slot, and prices the waste; "Project" estimates the cost of
+            onboarding <em>N</em> more servers against your free slots.
+            <strong>Why it matters:</strong> SQL Monitor licenses by slot, and
+            slots leak silently as servers are retired — this surfaces
+            reclaimable spend and answers "can we fit the next project without
+            buying more?"</span
+          ></span
+        ></h2>
         <p class="tool-tag">
           <code>monitor-cost</code>
           <span
@@ -208,7 +368,18 @@
       </section>
 
       <section class="card">
-        <h2>Health check (doctor)</h2>
+        <h2>Health check (doctor)<span class="info" tabindex="0" role="note" aria-label="Logic & why">i
+          <span class="info-tip"
+            ><strong>What it checks.</strong> Runs a battery of lint rules over
+            the install — silent/never-reporting servers, alerts routed to
+            nobody, stale metrics, decommissioned servers still licensed — and
+            grades each finding error / warning / info.
+            <strong>Why:</strong> monitoring misconfig is invisible until the
+            night it matters (the alert that never fired). Doctor makes those
+            latent gaps visible up front, the way <code>npm audit</code> does for
+            dependencies.</span
+          ></span
+        ></h2>
         <p class="tool-tag">
           <code>monitor-doctor</code>
           <span
@@ -228,7 +399,18 @@
       </section>
 
       <section class="card">
-        <h2>Alert config — plan &amp; apply</h2>
+        <h2>Alert config — plan &amp; apply<span class="info" tabindex="0" role="note" aria-label="Logic & why">i
+          <span class="info-tip"
+            ><strong>The model.</strong> Alert thresholds and settings live as
+            version-controlled YAML. "Show plan" diffs that desired config
+            against what's live in Monitor; "Apply" only mutates Monitor after
+            you confirm, and tag filters scope the blast radius.
+            <strong>Why like Terraform:</strong> GUI-clicked alert config drifts
+            and isn't reviewable — treating it as code makes every change
+            diffable, reviewable and repeatable, and dry-run-by-default prevents
+            a fat-fingered mass edit.</span
+          ></span
+        ></h2>
         <p class="tool-tag">
           <code>monitor-config</code>
           <span
@@ -257,7 +439,15 @@
       </section>
 
       <section class="card">
-        <h2>Log</h2>
+        <h2>Log<span class="info" tabindex="0" role="note" aria-label="Logic & why">i
+          <span class="info-tip"
+            ><strong>What it is.</strong> An append-only, client-side activity
+            log: every tool action and its result or error is timestamped here.
+            <strong>Why:</strong> these tools make real changes to Monitor, so an
+            at-a-glance audit trail of what ran and what came back keeps you
+            oriented without opening the browser console.</span
+          ></span
+        ></h2>
         <pre id="log" class="log"></pre>
       </section>
     </main>
