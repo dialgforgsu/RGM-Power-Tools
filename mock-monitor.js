@@ -1011,6 +1011,81 @@
     wireClick('doctor-export-md', exportMd);
     wireClick('doctor-export-pdf', exportPdf);
 
+    // monitor-config: export the desired alert config as version-controlled
+    // YAML — the file the tool plans against. Reconstructed from the plan's
+    // desired ("to") values: changed/added fields become the config, removed
+    // fields and live-only groups are absent (they aren't part of the source).
+    const setPath = function (obj, dotted, value) {
+      const parts = dotted.split('.');
+      let cur = obj;
+      for (let i = 0; i < parts.length - 1; i++) {
+        const p = parts[i];
+        if (!cur[p] || typeof cur[p] !== 'object') cur[p] = {};
+        cur = cur[p];
+      }
+      cur[parts[parts.length - 1]] = value;
+    };
+    const planToDesired = function (plan) {
+      const groups = {};
+      plan.groups.forEach(function (g) {
+        if (g.status === 'removed') return; // live-only — not in the source file
+        const cfg = {};
+        (g.changes || []).forEach(function (c) {
+          if (c.kind === 'removed') return; // absent from the desired state
+          setPath(cfg, c.path, c.to);
+        });
+        groups[g.name] = cfg;
+      });
+      return { version: 1, groups: groups };
+    };
+    // Minimal YAML emitter (no library on the static page): nested mappings,
+    // string values always double-quoted so values like "#prod-alerts" don't
+    // read as comments; numbers/booleans bare; empty mappings as "{}".
+    const yamlKey = function (k) {
+      return /^[A-Za-z0-9_][A-Za-z0-9_ -]*$/.test(k)
+        ? k
+        : '"' + String(k).replace(/"/g, '\\"') + '"';
+    };
+    const toYaml = function (value, indent) {
+      const pad = '  '.repeat(indent);
+      if (value === null || value === undefined) return 'null';
+      if (typeof value === 'number' || typeof value === 'boolean') {
+        return String(value);
+      }
+      if (typeof value === 'string') {
+        return '"' + value.replace(/\\/g, '\\\\').replace(/"/g, '\\"') + '"';
+      }
+      const keys = Object.keys(value);
+      if (!keys.length) return '{}';
+      return keys
+        .map(function (k) {
+          const v = value[k];
+          const isMap =
+            v && typeof v === 'object' && Object.keys(v).length > 0;
+          return isMap
+            ? pad + yamlKey(k) + ':\n' + toYaml(v, indent + 1)
+            : pad + yamlKey(k) + ': ' + toYaml(v, indent + 1);
+        })
+        .join('\n');
+    };
+    const exportYaml = function () {
+      const desired = planToDesired(freshPlan());
+      const yaml =
+        '# monitor-config — desired alert configuration\n' +
+        '# Generated ' +
+        stamp() +
+        '\n' +
+        toYaml(desired, 0) +
+        '\n';
+      downloadFile(
+        'monitor-alerts.yaml',
+        yaml,
+        'text/yaml;charset=utf-8',
+      );
+      logLine('Exported alert config as YAML.');
+    };
+    wireClick('plan-export-btn', exportYaml);
+
     // Run each tool one after another with a small gap so the cascade is
     // visible. Order mirrors the on-page sections, top to bottom.
     (async function showEverything() {

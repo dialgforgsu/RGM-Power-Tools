@@ -287,6 +287,66 @@
         max-height: 14rem;
         overflow-y: auto;
       }
+
+      /* --- Terminal-window chrome for each tool's output ------------------- */
+      /* Demo-only: each card's output region (status, groups, tags, the diff,
+         the post-mortem, the doctor findings, the activity log) is wrapped in a
+         faux terminal window — a title bar with traffic-light dots and the
+         command that "produced" it, over a dark monospace body. Pure cosmetics
+         added by the wrap script below; app.js still finds every element by id. */
+      .term {
+        margin: 0.25rem 0 0.85rem;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        background: #0d1117;
+        overflow: hidden;
+      }
+      .term-bar {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        padding: 0.4rem 0.6rem;
+        background: #161b22;
+        border-bottom: 1px solid var(--border);
+      }
+      .term-dots {
+        display: inline-flex;
+        gap: 0.35rem;
+      }
+      .term-dot {
+        width: 0.62rem;
+        height: 0.62rem;
+        border-radius: 50%;
+      }
+      .term-dot.r {
+        background: #ff5f56;
+      }
+      .term-dot.y {
+        background: #ffbd2e;
+      }
+      .term-dot.g {
+        background: #27c93f;
+      }
+      .term-title {
+        font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        font-size: 0.72rem;
+        color: var(--muted);
+      }
+      .term-body {
+        padding: 0.75rem;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        overflow: auto;
+      }
+      /* The Log <pre> and the replay <textarea> bring their own border and
+         background; inside a frame the frame supplies those, so strip the inner
+         chrome (their scroll caps and sizing stay intact). */
+      .term-body > .log,
+      .term-body > .output {
+        border: none;
+        border-radius: 0;
+        background: transparent;
+        padding: 0;
+      }
     </style>
   </head>
   <body>
@@ -574,6 +634,7 @@
             />
           </label>
           <button id="plan-btn" type="button">Show plan (diff)</button>
+          <button id="plan-export-btn" type="button">Export YAML</button>
           <button id="apply-btn" type="button" class="danger">Apply changes</button>
           <button id="plan-clear-btn" type="button">Clear plan</button>
         </div>
@@ -584,6 +645,61 @@
     <!-- Order matters: mock-monitor.js must patch fetch before app.js runs. -->
     <script src="mock-monitor.js"></script>
     <script src="packages/server/public/app.js"></script>
+
+    <!--
+      Demo-only: dress each tool's output region as a terminal window. Each
+      target element keeps its id and is simply relocated into a .term-body, so
+      app.js (which addresses everything by id) is none the wiser; the title bar
+      shows the command that "produced" the output.
+    -->
+    <script>
+      (function () {
+        'use strict';
+        const TERMINALS = [
+          { id: 'status-body', title: 'monitor status' },
+          { id: 'groups-table', title: 'monitor groups' },
+          { id: 'tags-area', title: 'monitor-tagger' },
+          { id: 'replay-output', title: 'monitor-replay' },
+          { id: 'doctor-area', title: 'monitor-doctor' },
+          { id: 'plan-area', title: 'monitor-config plan' },
+          // The Log isn't a tool; it's the session's own audit trail, so it gets
+          // a path-style title rather than a "$ command" one.
+          { id: 'log', title: 'activity.log', prompt: false },
+        ];
+        TERMINALS.forEach(function (spec) {
+          const target = document.getElementById(spec.id);
+          if (!target || target.closest('.term')) return;
+
+          const frame = document.createElement('div');
+          frame.className = 'term';
+
+          const bar = document.createElement('div');
+          bar.className = 'term-bar';
+          const dots = document.createElement('span');
+          dots.className = 'term-dots';
+          ['r', 'y', 'g'].forEach(function (c) {
+            const dot = document.createElement('span');
+            dot.className = 'term-dot ' + c;
+            dot.setAttribute('aria-hidden', 'true');
+            dots.appendChild(dot);
+          });
+          const title = document.createElement('span');
+          title.className = 'term-title';
+          title.textContent = (spec.prompt === false ? '' : '$ ') + spec.title;
+          bar.appendChild(dots);
+          bar.appendChild(title);
+
+          const body = document.createElement('div');
+          body.className = 'term-body';
+
+          // Drop the frame where the element is, then move the element inside it.
+          target.parentNode.insertBefore(frame, target);
+          body.appendChild(target);
+          frame.appendChild(bar);
+          frame.appendChild(body);
+        });
+      })();
+    </script>
 
     <!--
       Demo-only: arrange the cards as a draggable 3-column board. Each card
