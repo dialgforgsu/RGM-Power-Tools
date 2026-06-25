@@ -431,10 +431,10 @@
           >
         </p>
         <div class="row">
-          <label>Last <input id="replay-last" type="text" placeholder="e.g. 2h" value="2h" /></label>
+          <label>Last <input id="replay-last" type="text" placeholder="e.g. 2h" /></label>
           <span class="muted">or</span>
-          <label>From <input id="replay-from" type="text" placeholder="ISO UTC" /></label>
-          <label>To <input id="replay-to" type="text" placeholder="ISO UTC" /></label>
+          <label>From <input id="replay-from" type="text" placeholder="ISO UTC" value="2026-06-24T18:05:00Z" /></label>
+          <label>To <input id="replay-to" type="text" placeholder="ISO UTC" value="2026-06-24T19:05:00Z" /></label>
         </div>
         <div class="row">
           <label>Title <input id="replay-title" type="text" placeholder="optional" value="PROD checkout outage" /></label>
@@ -507,6 +507,12 @@
           <button id="doctor-btn" type="button">Run health check</button>
           <span id="doctor-summary" class="muted"></span>
         </div>
+        <div class="row">
+          <span class="muted">Export issues &amp; prognosis:</span>
+          <button id="doctor-export-csv" type="button">CSV</button>
+          <button id="doctor-export-md" type="button">Markdown</button>
+          <button id="doctor-export-pdf" type="button">PDF</button>
+        </div>
         <div id="doctor-area"><p class="muted">Run to audit the installation.</p></div>
       </section>
 
@@ -545,6 +551,7 @@
           </label>
           <button id="plan-btn" type="button">Show plan (diff)</button>
           <button id="apply-btn" type="button" class="danger">Apply changes</button>
+          <button id="plan-clear-btn" type="button">Clear plan</button>
         </div>
         <div id="plan-area"><p class="muted">Show the plan to see pending changes.</p></div>
       </section>

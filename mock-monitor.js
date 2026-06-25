@@ -379,44 +379,44 @@
   // monitor-replay: a seeded incident. Annotations added via the UI append here.
   const incident = {
     window: {
-      startUtc: '2026-06-24T12:00:00Z',
-      endUtc: '2026-06-24T15:00:00Z',
+      startUtc: '2026-06-24T18:05:00Z',
+      endUtc: '2026-06-24T19:05:00Z',
     },
     alerts: [
       {
-        raisedUtc: '2026-06-24T12:53:02Z',
-        clearedUtc: '2026-06-24T13:21:30Z',
+        raisedUtc: '2026-06-24T18:08:02Z',
+        clearedUtc: '2026-06-24T18:21:30Z',
         severity: 'High',
         object: 'PROD-SQL-01',
         alertName: 'CPU utilization',
         detail: '95% sustained for 10 minutes',
       },
       {
-        raisedUtc: '2026-06-24T13:02:10Z',
-        clearedUtc: '2026-06-24T13:40:00Z',
+        raisedUtc: '2026-06-24T18:12:10Z',
+        clearedUtc: '2026-06-24T18:30:00Z',
         severity: 'Medium',
         object: 'PROD-SQL-01',
         alertName: 'Long-running query',
         detail: 'checkout query exceeded 600s',
       },
       {
-        raisedUtc: '2026-06-24T13:15:00Z',
-        clearedUtc: '2026-06-24T14:05:12Z',
+        raisedUtc: '2026-06-24T18:17:00Z',
+        clearedUtc: '2026-06-24T18:55:12Z',
         severity: 'High',
         object: 'PROD-SQL-02',
         alertName: 'Blocking process',
         detail: 'session 73 blocking 12 others',
       },
       {
-        raisedUtc: '2026-06-24T13:22:48Z',
-        clearedUtc: '2026-06-24T13:58:00Z',
+        raisedUtc: '2026-06-24T18:22:48Z',
+        clearedUtc: '2026-06-24T18:40:00Z',
         severity: 'High',
         object: 'PROD-SQL-01',
         alertName: 'Page life expectancy',
         detail: 'PLE dropped to 42s — heavy buffer pool churn',
       },
       {
-        raisedUtc: '2026-06-24T13:31:05Z',
+        raisedUtc: '2026-06-24T18:31:05Z',
         clearedUtc: null,
         severity: 'High',
         object: 'PAY-SQL-01',
@@ -424,16 +424,16 @@
         detail: '3 deadlocks on the payments queue in 5 minutes',
       },
       {
-        raisedUtc: '2026-06-24T13:44:19Z',
-        clearedUtc: '2026-06-24T14:12:00Z',
+        raisedUtc: '2026-06-24T18:44:19Z',
+        clearedUtc: '2026-06-24T18:58:00Z',
         severity: 'Medium',
         object: 'PROD-SQL-02',
         alertName: 'Disk space',
         detail: 'tempdb volume at 91% during the incident',
       },
       {
-        raisedUtc: '2026-06-24T14:01:33Z',
-        clearedUtc: '2026-06-24T14:18:40Z',
+        raisedUtc: '2026-06-24T19:01:33Z',
+        clearedUtc: '2026-06-24T19:04:40Z',
         severity: 'Low',
         object: 'ECOM-SQL-03',
         alertName: 'Failed job',
@@ -442,7 +442,7 @@
     ],
     slowQueries: [
       {
-        capturedUtc: '2026-06-24T13:10:45Z',
+        capturedUtc: '2026-06-24T18:10:45Z',
         durationMs: 8400,
         object: 'PROD-SQL-01',
         database: 'checkout',
@@ -450,21 +450,21 @@
           'SELECT o.* FROM orders o JOIN order_items i ON i.order_id = o.id\nWHERE o.status = @status ORDER BY o.created_at DESC;',
       },
       {
-        capturedUtc: '2026-06-24T13:18:22Z',
+        capturedUtc: '2026-06-24T18:18:22Z',
         durationMs: 4200,
         object: 'PROD-SQL-01',
         database: 'checkout',
         query: 'UPDATE inventory SET reserved = reserved + 1 WHERE sku = @sku;',
       },
       {
-        capturedUtc: '2026-06-24T13:25:09Z',
+        capturedUtc: '2026-06-24T18:25:09Z',
         durationMs: 2100,
         object: 'PROD-SQL-02',
         database: 'orders',
         query: 'SELECT COUNT(*) FROM orders WHERE created_at > @since;',
       },
       {
-        capturedUtc: '2026-06-24T13:33:51Z',
+        capturedUtc: '2026-06-24T18:33:51Z',
         durationMs: 12700,
         object: 'PROD-SQL-01',
         database: 'checkout',
@@ -472,7 +472,7 @@
           'SELECT TOP (100) c.id, SUM(li.qty * li.price) AS total\nFROM carts c JOIN line_items li ON li.cart_id = c.id\nGROUP BY c.id ORDER BY total DESC;',
       },
       {
-        capturedUtc: '2026-06-24T13:41:14Z',
+        capturedUtc: '2026-06-24T18:41:14Z',
         durationMs: 6650,
         object: 'PAY-SQL-01',
         database: 'payments',
@@ -480,7 +480,7 @@
           'SELECT * FROM payment_attempts WHERE status = @status AND created_at > @since;',
       },
       {
-        capturedUtc: '2026-06-24T13:52:38Z',
+        capturedUtc: '2026-06-24T18:52:38Z',
         durationMs: 3300,
         object: 'PROD-SQL-02',
         database: 'orders',
@@ -490,7 +490,7 @@
     ],
     backups: [
       {
-        startedUtc: '2026-06-24T13:30:00Z',
+        startedUtc: '2026-06-24T18:30:00Z',
         object: 'PROD-SQL-01',
         database: 'checkout',
         type: 'Full',
@@ -498,7 +498,7 @@
         outcome: 'Succeeded',
       },
       {
-        startedUtc: '2026-06-24T13:45:00Z',
+        startedUtc: '2026-06-24T18:45:00Z',
         object: 'PROD-SQL-02',
         database: 'orders',
         type: 'Log',
@@ -506,7 +506,7 @@
         outcome: 'Failed',
       },
       {
-        startedUtc: '2026-06-24T14:00:00Z',
+        startedUtc: '2026-06-24T19:00:00Z',
         object: 'PROD-SQL-02',
         database: 'orders',
         type: 'Log',
@@ -514,7 +514,7 @@
         outcome: 'Failed',
       },
       {
-        startedUtc: '2026-06-24T14:15:00Z',
+        startedUtc: '2026-06-24T19:03:00Z',
         object: 'PAY-SQL-01',
         database: 'payments',
         type: 'Differential',
@@ -524,19 +524,19 @@
     ],
     annotations: [
       {
-        createdUtc: '2026-06-24T12:48:11Z',
+        createdUtc: '2026-06-24T18:06:11Z',
         author: 'ci-bot',
         object: 'PROD-SQL-01',
         text: 'Deployed checkout v2.4.0 to PROD',
       },
       {
-        createdUtc: '2026-06-24T13:35:00Z',
+        createdUtc: '2026-06-24T18:35:00Z',
         author: 'a.patel',
         object: 'PROD-SQL-01',
         text: 'Manually killed blocking session 73 to relieve the queue',
       },
       {
-        createdUtc: '2026-06-24T14:20:00Z',
+        createdUtc: '2026-06-24T19:02:00Z',
         author: 'ci-bot',
         object: 'PROD-SQL-01',
         text: 'Rolled back checkout to v2.3.9',
@@ -806,7 +806,21 @@
 
       case 'GET /api/replay': {
         const title = query.get('title') || 'Incident replay';
-        const markdown = renderPostMortem(incident, title);
+        // Honour the requested window (from/to, or last) for the report
+        // header, falling back to the seeded incident window.
+        const from = query.get('from');
+        const to = query.get('to');
+        const data =
+          from || to
+            ? {
+                ...incident,
+                window: {
+                  startUtc: from || incident.window.startUtc,
+                  endUtc: to || incident.window.endUtc,
+                },
+              }
+            : incident;
+        const markdown = renderPostMortem(data, title);
         return {
           markdown,
           counts: {
@@ -920,6 +934,166 @@
         call('runCost', Number.isInteger(n) && n > 0 ? n : undefined);
       });
     }
+
+    const logLine = function (msg, kind) {
+      if (typeof window.log === 'function') window.log(msg, kind);
+    };
+
+    // monitor-config: clear the rendered plan/diff back to its empty state.
+    const planClearBtn = document.getElementById('plan-clear-btn');
+    if (planClearBtn) {
+      planClearBtn.addEventListener('click', function () {
+        const area = document.getElementById('plan-area');
+        if (area) {
+          while (area.firstChild) area.removeChild(area.firstChild);
+          const p = document.createElement('p');
+          p.className = 'muted';
+          p.textContent = 'Show the plan to see pending changes.';
+          area.appendChild(p);
+        }
+        logLine('Plan cleared.');
+      });
+    }
+
+    // monitor-doctor: export the findings (issue + prognosis) as CSV, a
+    // Markdown file, or a print-to-PDF view. Uses the in-scope doctorReport so
+    // it works fully offline. app.js is untouched.
+    const downloadFile = function (name, text, mime) {
+      const blob = new Blob([text], { type: mime });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = name;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(function () {
+        URL.revokeObjectURL(url);
+      }, 0);
+    };
+    const stamp = function () {
+      return new Date().toISOString();
+    };
+    const summaryLine = function () {
+      const c = doctorReport.counts;
+      return (
+        doctorReport.total +
+        ' issue(s): ' +
+        c.error +
+        ' error, ' +
+        c.warning +
+        ' warning, ' +
+        c.info +
+        ' info'
+      );
+    };
+    const csvCell = function (v) {
+      return '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"';
+    };
+    const mdCell = function (v) {
+      return String(v == null ? '' : v)
+        .replace(/\|/g, '\\|')
+        .replace(/\r?\n/g, ' ');
+    };
+    const esc = function (v) {
+      return String(v == null ? '' : v)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+    };
+    const COLUMNS = ['Severity', 'Check', 'Title', 'Subject', 'Prognosis'];
+    const rowOf = function (f) {
+      return [f.severity, f.checkId, f.title, f.subject || '', f.detail || ''];
+    };
+    const exportCsv = function () {
+      const lines = [COLUMNS].concat(doctorReport.findings.map(rowOf));
+      const csv = lines
+        .map(function (r) {
+          return r.map(csvCell).join(',');
+        })
+        .join('\r\n');
+      downloadFile('monitor-doctor-report.csv', csv, 'text/csv;charset=utf-8');
+      logLine('Exported health check as CSV.');
+    };
+    const exportMd = function () {
+      const out = [
+        '# monitor-doctor — health check report',
+        '',
+        '_Generated ' + stamp() + ' · ' + summaryLine() + '_',
+        '',
+        '| ' + COLUMNS.join(' | ') + ' |',
+        '| --- | --- | --- | --- | --- |',
+      ];
+      doctorReport.findings.forEach(function (f) {
+        out.push('| ' + rowOf(f).map(mdCell).join(' | ') + ' |');
+      });
+      out.push('');
+      downloadFile(
+        'monitor-doctor-report.md',
+        out.join('\n'),
+        'text/markdown;charset=utf-8',
+      );
+      logLine('Exported health check as Markdown.');
+    };
+    const exportPdf = function () {
+      const body = doctorReport.findings
+        .map(function (f) {
+          return (
+            '<tr class="' +
+            esc(f.severity) +
+            '">' +
+            rowOf(f)
+              .map(function (c) {
+                return '<td>' + esc(c) + '</td>';
+              })
+              .join('') +
+            '</tr>'
+          );
+        })
+        .join('');
+      const html =
+        '<!doctype html><html><head><meta charset="utf-8">' +
+        '<title>monitor-doctor health check</title><style>' +
+        'body{font-family:system-ui,Segoe UI,Arial,sans-serif;margin:2rem;color:#111}' +
+        'h1{font-size:1.3rem;margin:0 0 .25rem}.sub{color:#555;margin:0 0 1rem}' +
+        'table{border-collapse:collapse;width:100%;font-size:12px}' +
+        'th,td{border:1px solid #ccc;padding:6px 8px;text-align:left;vertical-align:top}' +
+        'th{background:#f2f2f2}' +
+        'tr.error td:first-child{color:#b3261e;font-weight:700}' +
+        'tr.warning td:first-child{color:#9a6700;font-weight:700}' +
+        'tr.info td:first-child{color:#1a56c4;font-weight:700}' +
+        '</style></head><body>' +
+        '<h1>monitor-doctor — health check report</h1>' +
+        '<p class="sub">Generated ' +
+        esc(stamp()) +
+        ' · ' +
+        esc(summaryLine()) +
+        '</p><table><thead><tr><th>' +
+        COLUMNS.join('</th><th>') +
+        '</th></tr></thead><tbody>' +
+        body +
+        '</tbody></table></body></html>';
+      const win = window.open('', '_blank');
+      if (!win) {
+        logLine('PDF export: allow pop-ups to open the print view.', 'error');
+        return;
+      }
+      win.document.open();
+      win.document.write(html);
+      win.document.close();
+      win.focus();
+      setTimeout(function () {
+        win.print();
+      }, 250);
+      logLine('Opened health check print view — use "Save as PDF".');
+    };
+    const wireClick = function (id, fn) {
+      const btn = document.getElementById(id);
+      if (btn) btn.addEventListener('click', fn);
+    };
+    wireClick('doctor-export-csv', exportCsv);
+    wireClick('doctor-export-md', exportMd);
+    wireClick('doctor-export-pdf', exportPdf);
 
     // Run each tool one after another with a small gap so the cascade is
     // visible. Order mirrors the on-page sections, top to bottom.
