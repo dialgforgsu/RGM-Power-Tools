@@ -23,17 +23,26 @@
     workdir: '/home/dba/monitor-config',
   };
 
-  // Live Monitor groups (name + server count).
+  // Live Monitor groups (name + server count) — a mid-size enterprise estate.
   const liveGroups = [
-    { name: 'Production', servers: 4 },
-    { name: 'Payments', servers: 2 },
-    { name: 'Staging', servers: 2 },
-    { name: 'Development', servers: 3 },
-    { name: 'Analytics', servers: 1 },
+    { name: 'Production', servers: 12 },
+    { name: 'Payments', servers: 6 },
+    { name: 'E-Commerce', servers: 8 },
+    { name: 'Staging', servers: 5 },
+    { name: 'Development', servers: 7 },
+    { name: 'Analytics', servers: 4 },
+    { name: 'Data Warehouse', servers: 3 },
+    { name: 'Reporting', servers: 4 },
+    { name: 'QA', servers: 5 },
+    { name: 'DR', servers: 4 },
+    { name: 'Integration', servers: 3 },
+    { name: 'Legacy', servers: 2 },
   ];
 
-  // Tag overlay (monitor-tags.yaml). Deliberately missing Staging & Analytics
-  // so "Sync from Monitor" has something to add.
+  // Tag overlay (monitor-tags.yaml). Most groups are tagged, but Staging,
+  // Integration and Legacy are deliberately missing so "Sync from Monitor"
+  // has groups to add — and "Sandbox" is tagged but no longer live, so it
+  // shows up as a missing-live group.
   const tagState = {
     version: 1,
     groups: [
@@ -41,7 +50,7 @@
         name: 'Production',
         tags: {
           owner: 'dba-team',
-          business_unit: 'Payments',
+          business_unit: 'Platform',
           criticality: 'high',
           cost_center: '4200',
         },
@@ -52,12 +61,80 @@
           owner: 'payments-dba',
           business_unit: 'Payments',
           criticality: 'high',
-          cost_center: '4200',
+          cost_center: '4205',
+        },
+      },
+      {
+        name: 'E-Commerce',
+        tags: {
+          owner: 'web-dba',
+          business_unit: 'Retail',
+          criticality: 'high',
+          cost_center: '4210',
         },
       },
       {
         name: 'Development',
-        tags: { owner: 'dba-team', criticality: 'low' },
+        tags: {
+          owner: 'dba-team',
+          business_unit: 'Engineering',
+          criticality: 'low',
+          cost_center: '4300',
+        },
+      },
+      {
+        name: 'Analytics',
+        tags: {
+          owner: 'data-team',
+          business_unit: 'Data',
+          criticality: 'medium',
+          cost_center: '4400',
+        },
+      },
+      {
+        name: 'Data Warehouse',
+        tags: {
+          owner: 'data-team',
+          business_unit: 'Data',
+          criticality: 'medium',
+          cost_center: '4400',
+        },
+      },
+      {
+        name: 'Reporting',
+        tags: {
+          owner: 'bi-team',
+          business_unit: 'Finance',
+          criticality: 'medium',
+          cost_center: '4410',
+        },
+      },
+      {
+        name: 'QA',
+        tags: {
+          owner: 'qa-team',
+          business_unit: 'Engineering',
+          criticality: 'low',
+          cost_center: '4310',
+        },
+      },
+      {
+        name: 'DR',
+        tags: {
+          owner: 'dba-team',
+          business_unit: 'Platform',
+          criticality: 'high',
+          cost_center: '4200',
+        },
+      },
+      {
+        name: 'Sandbox',
+        tags: {
+          owner: 'dba-team',
+          business_unit: 'Engineering',
+          criticality: 'low',
+          cost_center: '4300',
+        },
       },
     ],
   };
@@ -88,12 +165,76 @@
               from: 600,
               to: 300,
             },
+            {
+              kind: 'changed',
+              path: 'disk_space.thresholds.high.value',
+              from: 95,
+              to: 90,
+            },
           ],
         },
-        // In desired config but not yet in Monitor (apply will skip it).
-        { name: 'DR', status: 'added', changes: [] },
+        {
+          name: 'Payments',
+          status: 'modified',
+          changes: [
+            {
+              kind: 'changed',
+              path: 'blocking_process.threshold_seconds',
+              from: 60,
+              to: 30,
+            },
+            {
+              kind: 'added',
+              path: 'deadlock.notifications.pagerduty',
+              to: 'payments-oncall',
+            },
+          ],
+        },
+        {
+          name: 'E-Commerce',
+          status: 'modified',
+          changes: [
+            {
+              kind: 'changed',
+              path: 'cpu_utilization.thresholds.high.value',
+              from: 92,
+              to: 88,
+            },
+            {
+              kind: 'removed',
+              path: 'page_life_expectancy.thresholds.low.value',
+              from: 300,
+            },
+            {
+              kind: 'added',
+              path: 'failed_job.notifications.email',
+              to: 'ecom-dba@red-gate.com',
+            },
+          ],
+        },
+        {
+          name: 'Analytics',
+          status: 'modified',
+          changes: [
+            {
+              kind: 'changed',
+              path: 'long_running_query.threshold_seconds',
+              from: 1800,
+              to: 3600,
+            },
+            {
+              kind: 'changed',
+              path: 'disk_space.thresholds.high.value',
+              from: 90,
+              to: 95,
+            },
+          ],
+        },
+        // In desired config but not yet in Monitor (apply will skip these).
+        { name: 'Edge', status: 'added', changes: [] },
+        { name: 'Archive', status: 'added', changes: [] },
         // In Monitor but not in the local config (apply never deletes).
-        { name: 'Analytics', status: 'removed', changes: [] },
+        { name: 'Legacy', status: 'removed', changes: [] },
       ],
     };
   }
@@ -117,10 +258,10 @@
     );
   }
 
-  // monitor-doctor findings.
+  // monitor-doctor findings — a realistic lint sweep over the whole install.
   const doctorReport = {
-    total: 4,
-    counts: { error: 2, warning: 2, info: 0 },
+    total: 12,
+    counts: { error: 4, warning: 5, info: 3 },
     findings: [
       {
         severity: 'error',
@@ -132,10 +273,25 @@
       },
       {
         severity: 'error',
+        title: 'Enabled alert has no notification channel',
+        subject: 'PAY-SQL-01 / deadlock',
+        detail:
+          'Deadlock alerts on a high-criticality group route nowhere — silent risk.',
+        checkId: 'alert-no-notification',
+      },
+      {
+        severity: 'error',
         title: 'Decommissioned server still holding a license',
         subject: 'OLD-SQL-07',
         detail: 'Stopped 92 days ago but still consuming a monitoring slot.',
         checkId: 'decommissioned-licensed',
+      },
+      {
+        severity: 'error',
+        title: 'Backups failing repeatedly',
+        subject: 'PROD-SQL-02 / orders',
+        detail: 'Last 6 log backups failed — recovery point objective at risk.',
+        checkId: 'backup-failing',
       },
       {
         severity: 'warning',
@@ -151,22 +307,72 @@
         detail: 'The query may be broken or the metric abandoned.',
         checkId: 'stale-custom-metric',
       },
+      {
+        severity: 'warning',
+        title: 'Server has stopped reporting metrics',
+        subject: 'ANALYTICS-02',
+        detail: 'No data received for 6 days — the base monitor may be down.',
+        checkId: 'no-recent-data',
+      },
+      {
+        severity: 'warning',
+        title: 'Alert threshold disabled on a critical group',
+        subject: 'Payments / long_running_query',
+        detail: 'High-criticality group with a key alert switched off.',
+        checkId: 'critical-alert-disabled',
+      },
+      {
+        severity: 'warning',
+        title: 'Group has no tags',
+        subject: 'Integration',
+        detail:
+          'Untagged groups are invisible to tag-filtered cost and alert policies.',
+        checkId: 'untagged-group',
+      },
+      {
+        severity: 'info',
+        title: 'Notification channel uses a personal email',
+        subject: 'Reporting / failed_job',
+        detail: 'Routes to a named individual — prefer a team alias or rota.',
+        checkId: 'personal-notification',
+      },
+      {
+        severity: 'info',
+        title: 'Data retention below recommended baseline',
+        subject: 'Development',
+        detail: 'Retention set to 7 days; 35 days recommended for trend analysis.',
+        checkId: 'short-retention',
+      },
+      {
+        severity: 'info',
+        title: 'Maintenance window overlaps backup schedule',
+        subject: 'Data Warehouse / etl_load',
+        detail:
+          'Suppressed alerts during 02:00–03:00 may hide real backup failures.',
+        checkId: 'window-overlap',
+      },
     ],
   };
 
   // monitor-cost: license capacity and idle (wasted) servers.
   const COST = {
-    totalSlots: 50,
-    usedSlots: 42,
+    totalSlots: 120,
+    usedSlots: 98,
     costPerSlot: 600,
     currency: 'USD',
     idleDays: 30,
     idleServers: [
       { name: 'OLD-SQL-07', status: 'Stopped', daysIdle: 92 },
       { name: 'LEGACY-APP-01', status: 'Stopped', daysIdle: 140 },
+      { name: 'LEGACY-APP-02', status: 'Stopped', daysIdle: 138 },
       { name: 'TEST-DB-02', status: 'Active', daysIdle: null },
       { name: 'QA-SQL-04', status: 'Active', daysIdle: 45 },
+      { name: 'QA-SQL-09', status: 'Active', daysIdle: 38 },
       { name: 'REPORTING-03', status: 'Active', daysIdle: 61 },
+      { name: 'INT-SQL-01', status: 'Active', daysIdle: 73 },
+      { name: 'DR-SQL-04', status: 'Stopped', daysIdle: 51 },
+      { name: 'SANDBOX-01', status: 'Active', daysIdle: 120 },
+      { name: 'ETL-STAGE-02', status: 'Active', daysIdle: 34 },
     ],
   };
 
@@ -207,8 +413,8 @@
   // monitor-replay: a seeded incident. Annotations added via the UI append here.
   const incident = {
     window: {
-      startUtc: '2026-06-24T12:30:00Z',
-      endUtc: '2026-06-24T14:30:00Z',
+      startUtc: '2026-06-24T12:00:00Z',
+      endUtc: '2026-06-24T15:00:00Z',
     },
     alerts: [
       {
@@ -229,11 +435,43 @@
       },
       {
         raisedUtc: '2026-06-24T13:15:00Z',
-        clearedUtc: null,
+        clearedUtc: '2026-06-24T14:05:12Z',
         severity: 'High',
         object: 'PROD-SQL-02',
         alertName: 'Blocking process',
         detail: 'session 73 blocking 12 others',
+      },
+      {
+        raisedUtc: '2026-06-24T13:22:48Z',
+        clearedUtc: '2026-06-24T13:58:00Z',
+        severity: 'High',
+        object: 'PROD-SQL-01',
+        alertName: 'Page life expectancy',
+        detail: 'PLE dropped to 42s — heavy buffer pool churn',
+      },
+      {
+        raisedUtc: '2026-06-24T13:31:05Z',
+        clearedUtc: null,
+        severity: 'High',
+        object: 'PAY-SQL-01',
+        alertName: 'Deadlock',
+        detail: '3 deadlocks on the payments queue in 5 minutes',
+      },
+      {
+        raisedUtc: '2026-06-24T13:44:19Z',
+        clearedUtc: '2026-06-24T14:12:00Z',
+        severity: 'Medium',
+        object: 'PROD-SQL-02',
+        alertName: 'Disk space',
+        detail: 'tempdb volume at 91% during the incident',
+      },
+      {
+        raisedUtc: '2026-06-24T14:01:33Z',
+        clearedUtc: '2026-06-24T14:18:40Z',
+        severity: 'Low',
+        object: 'ECOM-SQL-03',
+        alertName: 'Failed job',
+        detail: 'cart-cleanup job failed once, succeeded on retry',
       },
     ],
     slowQueries: [
@@ -259,6 +497,30 @@
         database: 'orders',
         query: 'SELECT COUNT(*) FROM orders WHERE created_at > @since;',
       },
+      {
+        capturedUtc: '2026-06-24T13:33:51Z',
+        durationMs: 12700,
+        object: 'PROD-SQL-01',
+        database: 'checkout',
+        query:
+          'SELECT TOP (100) c.id, SUM(li.qty * li.price) AS total\nFROM carts c JOIN line_items li ON li.cart_id = c.id\nGROUP BY c.id ORDER BY total DESC;',
+      },
+      {
+        capturedUtc: '2026-06-24T13:41:14Z',
+        durationMs: 6650,
+        object: 'PAY-SQL-01',
+        database: 'payments',
+        query:
+          'SELECT * FROM payment_attempts WHERE status = @status AND created_at > @since;',
+      },
+      {
+        capturedUtc: '2026-06-24T13:52:38Z',
+        durationMs: 3300,
+        object: 'PROD-SQL-02',
+        database: 'orders',
+        query:
+          'DELETE FROM order_events WHERE created_at < DATEADD(day, -90, SYSUTCDATETIME());',
+      },
     ],
     backups: [
       {
@@ -277,6 +539,22 @@
         sizeBytes: null,
         outcome: 'Failed',
       },
+      {
+        startedUtc: '2026-06-24T14:00:00Z',
+        object: 'PROD-SQL-02',
+        database: 'orders',
+        type: 'Log',
+        sizeBytes: null,
+        outcome: 'Failed',
+      },
+      {
+        startedUtc: '2026-06-24T14:15:00Z',
+        object: 'PAY-SQL-01',
+        database: 'payments',
+        type: 'Differential',
+        sizeBytes: 1288490188,
+        outcome: 'Succeeded',
+      },
     ],
     annotations: [
       {
@@ -284,6 +562,18 @@
         author: 'ci-bot',
         object: 'PROD-SQL-01',
         text: 'Deployed checkout v2.4.0 to PROD',
+      },
+      {
+        createdUtc: '2026-06-24T13:35:00Z',
+        author: 'a.patel',
+        object: 'PROD-SQL-01',
+        text: 'Manually killed blocking session 73 to relieve the queue',
+      },
+      {
+        createdUtc: '2026-06-24T14:20:00Z',
+        author: 'ci-bot',
+        object: 'PROD-SQL-01',
+        text: 'Rolled back checkout to v2.3.9',
       },
     ],
   };
@@ -657,7 +947,7 @@
       await wait(150);
       await call('runReplay'); // monitor-replay — post-mortem (uses defaults)
       await wait(150);
-      await call('runCost', 10); // monitor-cost — audit + onboarding projection
+      await call('runCost', 30); // monitor-cost — audit + onboarding projection
       await wait(150);
       await call('runDoctor'); // monitor-doctor — install linter
       await wait(150);
