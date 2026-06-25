@@ -292,7 +292,7 @@
         title: 'Group has no tags',
         subject: 'Integration',
         detail:
-          'Untagged groups are invisible to tag-filtered cost and alert policies.',
+          'Untagged groups are invisible to tag-filtered alert policies.',
         checkId: 'untagged-group',
       },
       {
@@ -319,62 +319,6 @@
       },
     ],
   };
-
-  // monitor-cost: license capacity and idle (wasted) servers.
-  const COST = {
-    totalSlots: 120,
-    usedSlots: 98,
-    costPerSlot: 600,
-    currency: 'USD',
-    idleDays: 30,
-    idleServers: [
-      { name: 'OLD-SQL-07', status: 'Stopped', daysIdle: 92 },
-      { name: 'LEGACY-APP-01', status: 'Stopped', daysIdle: 140 },
-      { name: 'LEGACY-APP-02', status: 'Stopped', daysIdle: 138 },
-      { name: 'TEST-DB-02', status: 'Active', daysIdle: null },
-      { name: 'QA-SQL-04', status: 'Active', daysIdle: 45 },
-      { name: 'QA-SQL-09', status: 'Active', daysIdle: 38 },
-      { name: 'REPORTING-03', status: 'Active', daysIdle: 61 },
-      { name: 'INT-SQL-01', status: 'Active', daysIdle: 73 },
-      { name: 'DR-SQL-04', status: 'Stopped', daysIdle: 51 },
-      { name: 'SANDBOX-01', status: 'Active', daysIdle: 120 },
-      { name: 'ETL-STAGE-02', status: 'Active', daysIdle: 34 },
-    ],
-  };
-
-  function costReport() {
-    const freeSlots = COST.totalSlots - COST.usedSlots;
-    const wastedSlots = COST.idleServers.length;
-    return {
-      usedSlots: COST.usedSlots,
-      totalSlots: COST.totalSlots,
-      freeSlots,
-      utilizationPct: Math.round((COST.usedSlots / COST.totalSlots) * 100),
-      licenseCost: COST.totalSlots * COST.costPerSlot,
-      currency: COST.currency,
-      idleDays: COST.idleDays,
-      wastedSlots,
-      wastedSpend: wastedSlots * COST.costPerSlot,
-      idleServers: COST.idleServers,
-    };
-  }
-
-  function costProjection(addServers) {
-    const freeSlots = COST.totalSlots - COST.usedSlots;
-    const withinLicense = addServers <= freeSlots;
-    const additionalSlotsNeeded = withinLicense ? 0 : addServers - freeSlots;
-    const additionalSpend = additionalSlotsNeeded * COST.costPerSlot;
-    return {
-      addServers,
-      freeSlots,
-      withinLicense,
-      additionalSlotsNeeded,
-      additionalSpend,
-      currency: COST.currency,
-      projectedLicenseCost:
-        COST.totalSlots * COST.costPerSlot + additionalSpend,
-    };
-  }
 
   // monitor-replay: a seeded incident. Annotations added via the UI append here.
   const incident = {
@@ -794,16 +738,6 @@
       case 'GET /api/doctor':
         return deepCopy(doctorReport);
 
-      case 'GET /api/cost': {
-        const addRaw = query.get('add');
-        const add = addRaw ? Number(addRaw) : undefined;
-        const report = costReport();
-        if (add !== undefined && Number.isInteger(add) && add > 0) {
-          return { report, projection: costProjection(add) };
-        }
-        return { report };
-      }
-
       case 'GET /api/replay': {
         const title = query.get('title') || 'Incident replay';
         // Honour the requested window (from/to, or last) for the report
@@ -916,24 +850,6 @@
         ? Promise.resolve(window[fn](...args)).catch(() => {})
         : Promise.resolve();
     const wait = (ms) => new Promise((r) => setTimeout(r, ms));
-
-    // Let the user retune the license price. monitor-cost derives everything
-    // (total license cost, reclaimable waste, onboarding spend) from the
-    // per-slot rate, so editing this field and re-auditing reflows every
-    // number. app.js is untouched — we just update the simulated rate and
-    // re-run its own cost action.
-    const slotInput = document.getElementById('cost-per-slot');
-    if (slotInput) {
-      slotInput.value = String(COST.costPerSlot);
-      slotInput.addEventListener('change', function () {
-        const rate = Number(slotInput.value);
-        if (!Number.isFinite(rate) || rate < 0) return;
-        COST.costPerSlot = rate;
-        const addEl = document.getElementById('cost-add');
-        const n = addEl ? parseInt(addEl.value, 10) : NaN;
-        call('runCost', Number.isInteger(n) && n > 0 ? n : undefined);
-      });
-    }
 
     const logLine = function (msg, kind) {
       if (typeof window.log === 'function') window.log(msg, kind);
@@ -1104,8 +1020,6 @@
       await call('loadTags'); // monitor-tagger — metadata overlay
       await wait(150);
       await call('runReplay'); // monitor-replay — post-mortem (uses defaults)
-      await wait(150);
-      await call('runCost', 30); // monitor-cost — audit + onboarding projection
       await wait(150);
       await call('runDoctor'); // monitor-doctor — install linter
       await wait(150);

@@ -289,65 +289,6 @@ async function copyReplay() {
   }
 }
 
-function money(amount, currency) {
-  const s = Number(amount).toLocaleString('en-US');
-  return currency ? `${s} ${currency}` : s;
-}
-
-async function runCost(add) {
-  const area = document.getElementById('cost-area');
-  try {
-    const q = add ? `?add=${encodeURIComponent(add)}` : '';
-    const data = await api('GET', `/api/cost${q}`);
-    const r = data.report;
-    clear(area);
-    area.append(
-      el(
-        'div',
-        `Slots: ${r.usedSlots}/${r.totalSlots} used (${r.utilizationPct}%), ${r.freeSlots} free.`,
-      ),
-    );
-    if (r.licenseCost != null) {
-      area.append(
-        el('div', `License cost: ${money(r.licenseCost, r.currency)}.`),
-      );
-    }
-    if (r.wastedSlots === 0) {
-      area.append(el('p', '✓ No wasted slots.', 'muted'));
-    } else {
-      const head =
-        r.wastedSpend != null
-          ? `${r.wastedSlots} wasted slot(s) = ${money(r.wastedSpend, r.currency)} reclaimable`
-          : `${r.wastedSlots} wasted slot(s)`;
-      area.append(el('div', head, 'change-mod'));
-      for (const s of r.idleServers) {
-        const age =
-          s.daysIdle == null ? 'never sent data' : `idle ${s.daysIdle} days`;
-        area.append(
-          el('div', `• ${s.name} (${s.status}, ${age})`, 'finding-detail'),
-        );
-      }
-    }
-    if (data.projection) {
-      const p = data.projection;
-      let line;
-      if (p.withinLicense) {
-        line = `Onboarding ${p.addServers}: fits within ${p.freeSlots} free slot(s).`;
-      } else {
-        line = `Onboarding ${p.addServers}: needs ${p.additionalSlotsNeeded} new slot(s)`;
-        line +=
-          p.additionalSpend != null
-            ? ` = ${money(p.additionalSpend, p.currency)}.`
-            : '.';
-      }
-      area.append(el('div', line, 'finding-subject'));
-    }
-    log('Cost audit complete.');
-  } catch (err) {
-    log(`Cost audit failed: ${err.message}`, 'error');
-  }
-}
-
 async function runDoctor() {
   const area = document.getElementById('doctor-area');
   const summary = document.getElementById('doctor-summary');
@@ -412,11 +353,6 @@ document
 document.getElementById('plan-btn').addEventListener('click', showPlan);
 document.getElementById('apply-btn').addEventListener('click', applyChanges);
 document.getElementById('doctor-btn').addEventListener('click', runDoctor);
-document.getElementById('cost-btn').addEventListener('click', () => runCost());
-document.getElementById('cost-project-btn').addEventListener('click', () => {
-  const n = parseInt(document.getElementById('cost-add').value, 10);
-  runCost(Number.isInteger(n) && n > 0 ? n : undefined);
-});
 document.getElementById('replay-btn').addEventListener('click', runReplay);
 document.getElementById('replay-copy').addEventListener('click', copyReplay);
 document.getElementById('annot-btn').addEventListener('click', addAnnotation);

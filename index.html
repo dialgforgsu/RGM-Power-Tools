@@ -228,17 +228,6 @@
         overflow-wrap: anywhere;
       }
 
-      /* Number inputs (cost per slot, onboarding count) — match the dashboard's
-         text inputs but sized to their short numeric values. */
-      input[type='number'] {
-        background: #0d1117;
-        color: var(--text);
-        border: 1px solid var(--border);
-        border-radius: 6px;
-        padding: 0.35rem 0.5rem;
-        width: 6rem;
-      }
-
       /* Sub-heading inside a card (e.g. "Groups" under the merged Status card). */
       .card .subhead {
         font-size: 0.8rem;
@@ -278,7 +267,7 @@
             ><strong>Why it matters:</strong> every tool below rides the same
             server&nbsp;→&nbsp;Monitor connection, so Status is your one cheap "is
             the wiring right?" check — green means the rest can run. And the
-            groups it loads are the unit every other tool acts on: cost, doctor,
+            groups it loads are the unit every other tool acts on: doctor,
             tags and alert filters all key off these names, so getting the
             inventory right scopes everything downstream correctly.</span
           ></span
@@ -319,7 +308,7 @@
             yet you constantly want to act on "everything
             <code>criticality=high</code>" or "owned by team X". Tags are that
             overlay (owner, business unit, criticality) — and they
-            become the filter keys the cost, doctor and alert-config tools rely
+            become the filter keys the doctor and alert-config tools rely
             on. Because a write changes source-of-truth config, you sync dry-run
             first to preview the delta, then "Sync &amp; write" to persist
             it.</span
@@ -445,42 +434,6 @@
       </section>
 
       <section class="card">
-        <h2>License &amp; cost<span class="info" tabindex="0" role="note" aria-label="Logic & why">i
-          <span class="info-tip"
-            ><strong>Why it matters:</strong> SQL Monitor licenses by slot, and
-            slots leak silently as servers are retired — so you keep paying for
-            monitoring nobody uses. This audit flags idle or decommissioned
-            servers still holding a slot, prices the waste you can reclaim, and
-            "Project" answers the budgeting question: can the next <em>N</em>
-            servers fit in free slots, or do we need to buy more?</span
-          ></span
-        ></h2>
-        <p class="tool-tag">
-          <code>monitor-cost</code>
-          <span
-            >— license utilization &amp; spend audit. Flags wasted slots you can
-            reclaim and projects the cost of onboarding more servers.</span
-          >
-          <a href="https://github.com/dialgforgsu/RGM-Power-Tools/tree/main/packages/cost"
-            >docs ↗</a
-          >
-        </p>
-        <div class="row">
-          <button id="cost-btn" type="button">Run cost audit</button>
-          <label
-            >Cost per slot (USD)
-            <input id="cost-per-slot" type="number" min="0" step="50" value="600" />
-          </label>
-          <label
-            >Project onboarding
-            <input id="cost-add" type="number" min="1" placeholder="# servers" value="30" />
-          </label>
-          <button id="cost-project-btn" type="button">Project</button>
-        </div>
-        <div id="cost-area"><p class="muted">Run to audit license utilization.</p></div>
-      </section>
-
-      <section class="card">
         <h2>Health check (doctor)<span class="info" tabindex="0" role="note" aria-label="Logic & why">i
           <span class="info-tip"
             ><strong>Why it matters:</strong> monitoring misconfig is invisible
@@ -590,7 +543,7 @@
 
         // Stable key per card from its heading's leading text node only —
         // NOT h2.textContent, which would also slurp the info button's "i" and
-        // its whole tooltip. e.g. "License & cost" → "license-cost".
+        // its whole tooltip. e.g. "Health check (doctor)" → "health-check-doctor".
         const keyOf = (card) => {
           const h = card.querySelector('h2');
           const lead = h && h.firstChild;

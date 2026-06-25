@@ -3,8 +3,7 @@
 A small, self-hostable web dashboard and JSON API that drives the rest of the
 RGM Power Tools from one place: check the Monitor connection, browse groups,
 manage [tags](../tagger/README.md), run the
-[health audit](../doctor/README.md) and
-[license/cost audit](../cost/README.md), generate an incident
+[health audit](../doctor/README.md), generate an incident
 [post-mortem](../replay/README.md), add timeline
 [annotations](../annotate/README.md), and preview/apply
 [alert config](../alert-config/README.md) — including tag-scoped applies.
@@ -94,7 +93,6 @@ it is treated as sensitive by design:
 | `POST /api/tags/validate`  | —                         | `{ valid, groups, tagged }`      |
 | `POST /api/tags/sync`      | `{ write? }`              | `{ added, missing, written }`    |
 | `GET /api/doctor`          | —                         | installation health report       |
-| `GET /api/cost`            | `?add=<n>` (optional)     | license utilization + projection |
 | `GET /api/replay`          | `?from=&to=` or `?last=`  | markdown post-mortem + counts    |
 | `POST /api/annotate`       | `{ text, object?, author? }` | write a manual timeline annotation |
 

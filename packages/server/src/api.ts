@@ -68,16 +68,6 @@ const routes: Record<string, Handler> = {
     return { status: 200, body: await s.syncTags({ write: b.write === true }) };
   },
   'GET /api/doctor': async (_req, s) => ({ status: 200, body: await s.doctor() }),
-  'GET /api/cost': async (req, s) => {
-    const addRaw = req.query.get('add');
-    const add = addRaw ? Number(addRaw) : undefined;
-    return {
-      status: 200,
-      body: await s.cost(
-        add !== undefined && Number.isInteger(add) && add > 0 ? add : undefined,
-      ),
-    };
-  },
   'GET /api/replay': async (req, s) => ({
     status: 200,
     body: await s.replay({

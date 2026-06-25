@@ -230,25 +230,6 @@ describe('endpoints', () => {
     expect(report.counts.error).toBeGreaterThanOrEqual(1);
   });
 
-  it('runs the cost audit and projects onboarding', async () => {
-    const res = await handle(req('GET', '/api/cost', { token: TOKEN }));
-    expect(res.status).toBe(200);
-    const { report } = res.body as {
-      report: { totalSlots: number; usedSlots: number; freeSlots: number; utilizationPct: number; wastedSlots: number; idleServers: Array<{ name: string }> };
-    };
-    expect(report.totalSlots).toBe(5);
-    expect(report.usedSlots).toBe(2);
-    expect(report.freeSlots).toBe(3);
-    expect(report.utilizationPct).toBe(40);
-    // PROD-SQL-01 has never sent data -> always counted as wasted.
-    expect(report.idleServers.map((s) => s.name)).toContain('PROD-SQL-01');
-
-    const proj = await handle(req('GET', '/api/cost?add=10', { token: TOKEN }));
-    const body = proj.body as { projection: { additionalSlotsNeeded: number; withinLicense: boolean } };
-    expect(body.projection.additionalSlotsNeeded).toBe(7); // 10 - 3 free
-    expect(body.projection.withinLicense).toBe(false);
-  });
-
   it('generates an incident post-mortem (replay)', async () => {
     const res = await handle(
       req(

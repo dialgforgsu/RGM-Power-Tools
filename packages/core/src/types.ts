@@ -108,7 +108,7 @@ export interface ServerStatus {
   lastDataUtc: string | null;
 }
 
-/** Installation-wide license capacity — for utilization/cost audits. */
+/** Installation-wide license capacity — for utilization audits. */
 export interface LicenseSummary {
   /** Total licensed monitoring slots. */
   totalSlots: number;

@@ -56,7 +56,7 @@ export interface MonitorClient {
   getCustomMetrics(): Promise<CustomMetric[]>;
   /** License/monitoring status per server, for decommission audits. */
   getServerStatuses(): Promise<ServerStatus[]>;
-  /** Installation-wide license capacity, for utilization/cost audits. */
+  /** Installation-wide license capacity, for utilization audits. */
   getLicenseSummary(): Promise<LicenseSummary>;
 
   // --- Forensic timeline reads (for monitor-replay) ---

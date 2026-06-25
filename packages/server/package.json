@@ -30,7 +30,6 @@
     "@rgm-power-tools/monitor-config": "workspace:*",
     "@rgm-power-tools/monitor-tagger": "workspace:*",
     "@rgm-power-tools/monitor-doctor": "workspace:*",
-    "@rgm-power-tools/monitor-cost": "workspace:*",
     "@rgm-power-tools/monitor-replay": "workspace:*"
   },
   "devDependencies": {

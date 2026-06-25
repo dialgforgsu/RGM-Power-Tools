@@ -26,7 +26,7 @@ export interface MockMonitorState {
   alertActivity: AlertActivity[];
   customMetrics: CustomMetric[];
   serverStatuses: ServerStatus[];
-  /** License capacity (for monitor-cost); defaults to all-zero. */
+  /** License capacity (for monitor-doctor); defaults to all-zero. */
   licenseSummary: LicenseSummary;
   /** Forensic timeline data (for monitor-replay); filtered by window on read. */
   alertEvents: AlertEvent[];

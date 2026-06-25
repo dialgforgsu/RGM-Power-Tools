@@ -12,7 +12,6 @@ works on its own or together.
 | **[monitor-config](packages/alert-config)** | Alert settings as version-controlled YAML — `export` / `diff` / `apply` / `validate`. "Terraform for Monitor alerts."                |
 | **[monitor-tagger](packages/tagger)**       | A metadata layer (owner, business unit, criticality, cost center) over groups, as YAML. Tags become filter keys every tool can use.  |
 | **[monitor-doctor](packages/doctor)**       | A linter for your install — silent servers, alerts with no notifications, stale metrics, wasted licenses. "`npm audit` for Monitor." |
-| **[monitor-cost](packages/cost)**           | License utilization & spend audit; flags wasted slots and projects onboarding cost.                                                  |
 | **[monitor-replay](packages/replay)**       | Forensic post-mortem generator — an incident window becomes a pre-filled markdown report.                                            |
 | **[monitor-annotate](packages/annotate)**   | Auto-annotates the timeline from deploy/CI webhooks, so incidents always have "what changed?" context.                               |
 | **[monitor-dashboard](packages/server)**    | Self-hostable web UI + JSON API that drives all of the above.                                                                        |
@@ -68,27 +67,6 @@ error    Decommissioned server still holding a license — OLD-SQL-07
         [decommissioned-licensed]
 
 3 issue(s): 2 error(s), 1 warning(s).
-```
-
-### monitor-cost
-
-```text
-$ monitor-cost --cost-per-slot 600 --currency USD
-License utilization
-  42/50 slots used (84%), 8 free.
-  License cost: 30,000 USD.
-
-5 wasted slot(s) = 3,000 USD reclaimable
-Licensed servers with no data in 30+ days:
-  • OLD-SQL-07 (Stopped, idle 92 days)
-  • TEST-DB-02 (Active, never sent data)
-
-$ monitor-cost project --add 10 --cost-per-slot 600 --currency USD
-Projection: onboard 10 server(s)
-  Free slots available now: 8.
-  Needs 2 new slot(s).
-  Additional spend: 1,200 USD.
-  Projected license cost: 31,200 USD.
 ```
 
 ### monitor-replay
