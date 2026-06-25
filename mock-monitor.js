@@ -955,6 +955,44 @@
       });
     }
 
+    // Explain the "cost_center" column in the tag matrix. app.js renders that
+    // table from the tag data and re-renders it on Load tags / Sync & write,
+    // so we (re)attach the info bubble via a MutationObserver, opening it
+    // leftward (info-tip--right) since cost_center is the right-most column.
+    const tagsArea = document.getElementById('tags-area');
+    if (tagsArea) {
+      const decorateCostCenter = function () {
+        tagsArea.querySelectorAll('th').forEach(function (th) {
+          if (th.dataset.infoDone || th.textContent.trim() !== 'cost_center') {
+            return;
+          }
+          th.dataset.infoDone = '1';
+          const info = document.createElement('span');
+          info.className = 'info';
+          info.tabIndex = 0;
+          info.setAttribute('role', 'note');
+          info.setAttribute('aria-label', 'What cost_center means');
+          info.appendChild(document.createTextNode('i'));
+          const tip = document.createElement('span');
+          tip.className = 'info-tip info-tip--right';
+          tip.innerHTML =
+            '<strong>cost_center.</strong> An accounting code for the team or ' +
+            'budget that a cost is charged to. Tagging each group with its ' +
+            'cost center lets <code>monitor-cost</code> attribute license ' +
+            'spend — and reclaimable waste — back to the budget that owns the ' +
+            'servers, so chargeback and "whose money is this?" become ' +
+            'answerable instead of guesswork.';
+          info.appendChild(tip);
+          th.appendChild(info);
+        });
+      };
+      new MutationObserver(decorateCostCenter).observe(tagsArea, {
+        childList: true,
+        subtree: true,
+      });
+      decorateCostCenter();
+    }
+
     // Run each tool one after another with a small gap so the cascade is
     // visible. Order mirrors the on-page sections, top to bottom.
     (async function showEverything() {
