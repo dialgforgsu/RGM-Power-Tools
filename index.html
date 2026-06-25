@@ -243,10 +243,19 @@
         width: 6rem;
       }
 
-      /* A card that spans the full board width. monitor-tagger uses this so its
-         wide tag matrix fits without a horizontal scroll bar. */
+      /* monitor-tagger sits to the right of the Status & groups card, sharing
+         the top row as a 2-column section: Status & groups takes one column,
+         the tagger spans the other two so it's the bigger of the pair (and its
+         wide tag matrix still fits without a horizontal scroll bar). On the
+         2-column breakpoint they sit side by side at equal width; at 1 column
+         everything stacks. */
       .card--wide {
-        grid-column: 1 / -1;
+        grid-column: span 2;
+      }
+      @media (max-width: 1100px) {
+        .card--wide {
+          grid-column: auto;
+        }
       }
 
       /* Sub-heading inside a card (e.g. "Groups" under the merged Status card). */
@@ -587,7 +596,7 @@
     <script>
       (function () {
         'use strict';
-        const ORDER_KEY = 'rgm-demo-card-order';
+        const ORDER_KEY = 'rgm-demo-card-order-v2';
         const board = document.querySelector('main');
         if (!board) return;
         const cards = Array.from(board.querySelectorAll('.card'));
