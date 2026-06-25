@@ -152,6 +152,8 @@
          stretching, so a short card next to a tall one stays compact. */
       main {
         grid-template-columns: repeat(3, minmax(0, 1fr));
+        /* Equal-width columns, but each card is only as tall as its own
+           content (align-items: start) rather than stretched to the tallest. */
         align-items: start;
         max-width: 1500px;
       }
@@ -214,22 +216,16 @@
         box-shadow: 4px 0 0 var(--accent);
       }
 
-      /* The monitor-tagger matrix has many columns (one per tag key), which
-         can't shrink below their content width inside a ~1/3-width card — so
-         the table used to bleed past the card border. Let wide tables scroll
-         horizontally *within* the card instead, and keep the header row on a
-         single line so it stays aligned with its column. */
-      #tags-area,
-      #groups-table {
-        display: block;
-        overflow-x: auto;
-      }
+      /* monitor-tagger's tag matrix uses a fixed table layout so its columns
+         share the card width and wrap their content — it always fits inside
+         the card, with no horizontal scroll bar. */
       #tags-area table {
-        min-width: 100%;
+        table-layout: fixed;
+        width: 100%;
       }
       #tags-area th,
-      #groups-table th {
-        white-space: nowrap;
+      #tags-area td {
+        overflow-wrap: anywhere;
       }
 
       /* Number inputs (cost per slot, onboarding count) — match the dashboard's
@@ -241,21 +237,6 @@
         border-radius: 6px;
         padding: 0.35rem 0.5rem;
         width: 6rem;
-      }
-
-      /* monitor-tagger sits to the right of the Status & groups card, sharing
-         the top row as a 2-column section: Status & groups takes one column,
-         the tagger spans the other two so it's the bigger of the pair (and its
-         wide tag matrix still fits without a horizontal scroll bar). On the
-         2-column breakpoint they sit side by side at equal width; at 1 column
-         everything stacks. */
-      .card--wide {
-        grid-column: span 2;
-      }
-      @media (max-width: 1100px) {
-        .card--wide {
-          grid-column: auto;
-        }
       }
 
       /* Sub-heading inside a card (e.g. "Groups" under the merged Status card). */
@@ -331,13 +312,13 @@
         </table>
       </section>
 
-      <section class="card card--wide">
+      <section class="card">
         <h2>Tags<span class="info" tabindex="0" role="note" aria-label="Logic & why">i
           <span class="info-tip"
             ><strong>Why it matters:</strong> Monitor has no native metadata,
             yet you constantly want to act on "everything
             <code>criticality=high</code>" or "owned by team X". Tags are that
-            overlay (owner, business unit, criticality, cost center) — and they
+            overlay (owner, business unit, criticality) — and they
             become the filter keys the cost, doctor and alert-config tools rely
             on. Because a write changes source-of-truth config, you sync dry-run
             first to preview the delta, then "Sync &amp; write" to persist
@@ -347,9 +328,8 @@
         <p class="tool-tag">
           <code>monitor-tagger</code>
           <span
-            >— a metadata overlay (owner, business unit, criticality, cost
-            center) on your groups. These tags become filter keys every tool can
-            use.</span
+            >— a metadata overlay (owner, business unit, criticality) on your
+            groups. These tags become filter keys every tool can use.</span
           >
           <a href="https://github.com/dialgforgsu/RGM-Power-Tools/tree/main/packages/tagger"
             >docs ↗</a

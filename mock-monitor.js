@@ -48,12 +48,7 @@
     groups: [
       {
         name: 'Production',
-        tags: {
-          owner: 'dba-team',
-          business_unit: 'Platform',
-          criticality: 'high',
-          cost_center: '4200',
-        },
+        tags: { owner: 'dba-team', business_unit: 'Platform', criticality: 'high' },
       },
       {
         name: 'Payments',
@@ -61,17 +56,11 @@
           owner: 'payments-dba',
           business_unit: 'Payments',
           criticality: 'high',
-          cost_center: '4205',
         },
       },
       {
         name: 'E-Commerce',
-        tags: {
-          owner: 'web-dba',
-          business_unit: 'Retail',
-          criticality: 'high',
-          cost_center: '4210',
-        },
+        tags: { owner: 'web-dba', business_unit: 'Retail', criticality: 'high' },
       },
       {
         name: 'Development',
@@ -79,35 +68,19 @@
           owner: 'dba-team',
           business_unit: 'Engineering',
           criticality: 'low',
-          cost_center: '4300',
         },
       },
       {
         name: 'Analytics',
-        tags: {
-          owner: 'data-team',
-          business_unit: 'Data',
-          criticality: 'medium',
-          cost_center: '4400',
-        },
+        tags: { owner: 'data-team', business_unit: 'Data', criticality: 'medium' },
       },
       {
         name: 'Data Warehouse',
-        tags: {
-          owner: 'data-team',
-          business_unit: 'Data',
-          criticality: 'medium',
-          cost_center: '4400',
-        },
+        tags: { owner: 'data-team', business_unit: 'Data', criticality: 'medium' },
       },
       {
         name: 'Reporting',
-        tags: {
-          owner: 'bi-team',
-          business_unit: 'Finance',
-          criticality: 'medium',
-          cost_center: '4410',
-        },
+        tags: { owner: 'bi-team', business_unit: 'Finance', criticality: 'medium' },
       },
       {
         name: 'QA',
@@ -115,17 +88,11 @@
           owner: 'qa-team',
           business_unit: 'Engineering',
           criticality: 'low',
-          cost_center: '4310',
         },
       },
       {
         name: 'DR',
-        tags: {
-          owner: 'dba-team',
-          business_unit: 'Platform',
-          criticality: 'high',
-          cost_center: '4200',
-        },
+        tags: { owner: 'dba-team', business_unit: 'Platform', criticality: 'high' },
       },
       {
         name: 'Sandbox',
@@ -133,7 +100,6 @@
           owner: 'dba-team',
           business_unit: 'Engineering',
           criticality: 'low',
-          cost_center: '4300',
         },
       },
     ],
@@ -953,44 +919,6 @@
         const n = addEl ? parseInt(addEl.value, 10) : NaN;
         call('runCost', Number.isInteger(n) && n > 0 ? n : undefined);
       });
-    }
-
-    // Explain the "cost_center" column in the tag matrix. app.js renders that
-    // table from the tag data and re-renders it on Load tags / Sync & write,
-    // so we (re)attach the info bubble via a MutationObserver, opening it
-    // leftward (info-tip--right) since cost_center is the right-most column.
-    const tagsArea = document.getElementById('tags-area');
-    if (tagsArea) {
-      const decorateCostCenter = function () {
-        tagsArea.querySelectorAll('th').forEach(function (th) {
-          if (th.dataset.infoDone || th.textContent.trim() !== 'cost_center') {
-            return;
-          }
-          th.dataset.infoDone = '1';
-          const info = document.createElement('span');
-          info.className = 'info';
-          info.tabIndex = 0;
-          info.setAttribute('role', 'note');
-          info.setAttribute('aria-label', 'What cost_center means');
-          info.appendChild(document.createTextNode('i'));
-          const tip = document.createElement('span');
-          tip.className = 'info-tip info-tip--right';
-          tip.innerHTML =
-            '<strong>cost_center.</strong> An accounting code for the team or ' +
-            'budget that a cost is charged to. Tagging each group with its ' +
-            'cost center lets <code>monitor-cost</code> attribute license ' +
-            'spend — and reclaimable waste — back to the budget that owns the ' +
-            'servers, so chargeback and "whose money is this?" become ' +
-            'answerable instead of guesswork.';
-          info.appendChild(tip);
-          th.appendChild(info);
-        });
-      };
-      new MutationObserver(decorateCostCenter).observe(tagsArea, {
-        childList: true,
-        subtree: true,
-      });
-      decorateCostCenter();
     }
 
     // Run each tool one after another with a small gap so the cascade is
