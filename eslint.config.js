@@ -16,9 +16,9 @@ export default tseslint.config(
   js.configs.recommended,
   ...tseslint.configs.recommended,
   {
-    // The dashboard's static assets — and the GitHub Pages demo under docs/ —
+    // The dashboard's static assets — and the root GitHub Pages demo shim —
     // run in the browser, not Node.
-    files: ['**/public/**/*.js', 'docs/**/*.js'],
+    files: ['**/public/**/*.js', 'mock-monitor.js'],
     languageOptions: {
       globals: { ...globals.browser, ...globals.es2022 },
     },

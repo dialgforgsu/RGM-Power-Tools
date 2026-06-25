@@ -5,9 +5,10 @@ Open-source CLIs (and a dashboard) that fill gaps in
 one engine — `@rgm-power-tools/core` — and the same connection details, so each
 works on its own or together.
 
-**▶ [Try the live demo](https://dialgforgsu.github.io/alertcode/)** — the real
+**▶ [Try the live demo](https://dialgforgsu.github.io/RGM-Power-Tools/)** — the real
 dashboard UI running against a simulated Monitor test environment, entirely in
-your browser (no backend, nothing sent anywhere). See [`docs/`](docs).
+your browser (no backend, nothing sent anywhere). It's served from the root
+[`index.html`](index.html) + [`mock-monitor.js`](mock-monitor.js).
 
 ## The tools
 

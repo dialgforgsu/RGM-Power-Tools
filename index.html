@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>RGM Power Tools — Live Demo</title>
+    <!--
+      Served from the repo root via GitHub Pages (Settings → Pages → main / root).
+      The whole repo is published, so this page reuses the *real* dashboard
+      assets in packages/server/public/ directly — no vendored copies to drift.
+      mock-monitor.js patches window.fetch for /api/* BEFORE app.js loads, so the
+      unmodified dashboard talks to a simulated Monitor instead of a backend.
+    -->
+    <link rel="stylesheet" href="packages/server/public/styles.css" />
+    <style>
+      /* Demo-only chrome. The dashboard's own styles live in styles.css. */
+      .demo-banner {
+        background: linear-gradient(90deg, #1f6feb22, #3fb95022);
+        border-bottom: 1px solid var(--border);
+        padding: 0.6rem 1.5rem;
+        font-size: 0.85rem;
+        color: var(--text);
+      }
+      .demo-banner strong {
+        color: var(--accent);
+      }
+      .demo-banner a {
+        color: #6ea8fe;
+      }
+      .demo-pill {
+        display: inline-block;
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        color: #0d1117;
+        background: var(--accent);
+        border-radius: 4px;
+        padding: 0.05rem 0.4rem;
+        margin-left: 0.4rem;
+        vertical-align: middle;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="demo-banner">
+      <strong>Live demo</strong> — this page runs the real dashboard UI against a
+      <strong>simulated Redgate Monitor test environment</strong> baked into your
+      browser. No backend, no real instance, nothing is sent anywhere. Every
+      button works; writes (apply, sync, annotate) mutate the in-memory demo
+      state only. Source:
+      <a href="https://github.com/dialgforgsu/RGM-Power-Tools"
+        >dialgforgsu/RGM-Power-Tools</a
+      >.
+    </div>
+
+    <header>
+      <h1>RGM Power Tools <span class="demo-pill">demo</span></h1>
+      <div id="conn" class="conn">
+        <span id="conn-dot" class="dot"></span>
+        <span id="conn-text">Not connected</span>
+        <button id="token-btn" type="button">Set token</button>
+      </div>
+    </header>
+
+    <main>
+      <section class="card" id="status-card">
+        <h2>Status</h2>
+        <dl id="status-body">
+          <div><dt>Monitor URL</dt><dd id="st-url">—</dd></div>
+          <div><dt>Token</dt><dd id="st-token">—</dd></div>
+          <div><dt>Working dir</dt><dd id="st-workdir">—</dd></div>
+        </dl>
+        <button id="refresh-btn" type="button">Refresh</button>
+      </section>
+
+      <section class="card">
+        <h2>Groups</h2>
+        <table id="groups-table">
+          <thead>
+            <tr><th>Group</th><th>Servers</th></tr>
+          </thead>
+          <tbody id="groups-body">
+            <tr><td colspan="2" class="muted">Load to view.</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section class="card">
+        <h2>Tags</h2>
+        <div class="row">
+          <button id="tags-load-btn" type="button">Load tags</button>
+          <button id="tags-sync-btn" type="button">Sync from Monitor (dry run)</button>
+          <button id="tags-sync-write-btn" type="button" class="danger">
+            Sync &amp; write
+          </button>
+        </div>
+        <div id="tags-area"><p class="muted">Load to view.</p></div>
+      </section>
+
+      <section class="card">
+        <h2>Annotate timeline</h2>
+        <div class="row">
+          <input id="annot-text" type="text" placeholder="What changed? (e.g. Deployed web v1.2.3)" />
+          <input id="annot-object" type="text" placeholder="object (optional)" />
+          <button id="annot-btn" type="button">Add annotation</button>
+        </div>
+        <p class="muted">
+          Automated deploy/CI annotations come from the separate
+          <code>monitor-annotate</code> webhook receiver.
+        </p>
+      </section>
+
+      <section class="card">
+        <h2>Incident replay (post-mortem)</h2>
+        <div class="row">
+          <label>Last <input id="replay-last" type="text" placeholder="e.g. 2h" value="2h" /></label>
+          <span class="muted">or</span>
+          <label>From <input id="replay-from" type="text" placeholder="ISO UTC" /></label>
+          <label>To <input id="replay-to" type="text" placeholder="ISO UTC" /></label>
+        </div>
+        <div class="row">
+          <label>Title <input id="replay-title" type="text" placeholder="optional" value="PROD checkout outage" /></label>
+          <button id="replay-btn" type="button">Generate post-mortem</button>
+          <button id="replay-copy" type="button">Copy markdown</button>
+        </div>
+        <textarea id="replay-output" class="output" readonly placeholder="Generated markdown appears here."></textarea>
+      </section>
+
+      <section class="card">
+        <h2>License &amp; cost</h2>
+        <div class="row">
+          <button id="cost-btn" type="button">Run cost audit</button>
+          <label
+            >Project onboarding
+            <input id="cost-add" type="number" min="1" placeholder="# servers" value="10" />
+          </label>
+          <button id="cost-project-btn" type="button">Project</button>
+        </div>
+        <div id="cost-area"><p class="muted">Run to audit license utilization.</p></div>
+      </section>
+
+      <section class="card">
+        <h2>Health check (doctor)</h2>
+        <div class="row">
+          <button id="doctor-btn" type="button">Run health check</button>
+          <span id="doctor-summary" class="muted"></span>
+        </div>
+        <div id="doctor-area"><p class="muted">Run to audit the installation.</p></div>
+      </section>
+
+      <section class="card">
+        <h2>Alert config — plan &amp; apply</h2>
+        <div class="row">
+          <label
+            >Tag filters
+            <input
+              id="filter-input"
+              type="text"
+              placeholder="e.g. criticality=high (comma-separated)"
+            />
+          </label>
+          <button id="plan-btn" type="button">Show plan (diff)</button>
+          <button id="apply-btn" type="button" class="danger">Apply changes</button>
+        </div>
+        <div id="plan-area"><p class="muted">Show the plan to see pending changes.</p></div>
+      </section>
+
+      <section class="card">
+        <h2>Log</h2>
+        <pre id="log" class="log"></pre>
+      </section>
+    </main>
+
+    <!-- Order matters: mock-monitor.js must patch fetch before app.js runs. -->
+    <script src="mock-monitor.js"></script>
+    <script src="packages/server/public/app.js"></script>
+  </body>
+</html>

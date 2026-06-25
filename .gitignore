@@ -22,6 +22,3 @@ coverage/
 .DS_Store
 .idea/
 *.log
-
-# Misc
-index.html
