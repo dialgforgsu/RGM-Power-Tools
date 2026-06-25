@@ -3,11 +3,11 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>RGM Power Tools — Live Demo</title>
+    <title>RGM Power Tools Live Demo</title>
     <!--
       Served from the repo root via GitHub Pages (Settings → Pages → main / root).
       The whole repo is published, so this page reuses the *real* dashboard
-      assets in packages/server/public/ directly — no vendored copies to drift.
+      assets in packages/server/public/ directly, so no vendored copies drift.
       mock-monitor.js patches window.fetch for /api/* BEFORE app.js loads, so the
       unmodified dashboard talks to a simulated Monitor instead of a backend.
     -->
@@ -58,7 +58,7 @@
         text-decoration: underline;
       }
       /* Informational "i" buttons. Each one reveals, on hover or keyboard
-         focus, the logic & rationale behind that tool — the "why", not just
+         focus, the logic and rationale behind that tool: the "why", not just
          the "what" the tool-tag already gives. Pure CSS, no JS. */
       .info {
         position: relative;
@@ -225,7 +225,7 @@
       /* --- Collapsible sections ------------------------------------------ */
       /* Click a card's heading to fold/unfold it. A chevron shows the state;
          the info "i" inside the heading keeps working because the toggle
-         handler ignores clicks that land on it. Demo-only — none of this
+         handler ignores clicks that land on it. Demo-only; none of this
          touches the real dashboard assets. */
       .card > h2 {
         cursor: pointer;
@@ -244,14 +244,14 @@
       .card.collapsed > h2 .chevron {
         transform: rotate(-90deg);
       }
-      /* Folded: the card is just its title bar — hide everything except the
+      /* Folded: the card is just its title bar, so hide everything except the
          heading and the drag grip. */
       .card.collapsed > *:not(h2):not(.drag-handle) {
         display: none;
       }
 
       /* monitor-tagger's tag matrix uses a fixed table layout so its columns
-         share the card width and wrap their content — it always fits inside
+         share the card width and wrap their content, so it always fits inside
          the card, with no horizontal scroll bar. */
       #tags-area table {
         table-layout: fixed;
@@ -271,7 +271,7 @@
         color: var(--muted);
         margin: 1.1rem 0 0.5rem;
       }
-      /* A stack of two cards that share one grid column — Annotate on top, Log
+      /* A stack of two cards that share one grid column: Annotate on top, Log
          beneath. It's a single grid item, so it occupies one column slot and
          drags as one unit; the gap matches the board's own grid gap. */
       .card-stack {
@@ -300,11 +300,11 @@
           <span class="info-tip info-tip--right"
             ><strong>Why it matters:</strong> if this tab is ever compromised,
             you don't want it holding the keys to your whole monitoring estate.
-            So the dashboard never sees Monitor's API key — it uses its own
-            scoped bearer token, kept in <code>sessionStorage</code> for this tab
-            only, while the powerful credential stays server-side. Nothing
-            connects on page load; each tool connects on demand the first time
-            you use it.</span
+            So the dashboard never sees Monitor's API key. It uses its own scoped
+            bearer token, stored in <code>sessionStorage</code> for this tab
+            only, while the powerful credential stays on the server. Nothing
+            connects on page load; each tool connects the first time you use
+            it.</span
           ></span
         >
       </div>
@@ -314,19 +314,19 @@
       <section class="card" id="status-card">
         <h2>Status &amp; groups<span class="info" tabindex="0" role="note" aria-label="Logic & why">i
           <span class="info-tip"
-            ><strong>Why it matters:</strong> every tool below rides the same
-            server&nbsp;→&nbsp;Monitor connection, so Status is your one cheap "is
-            the wiring right?" check — green means the rest can run. And the
-            groups it loads are the unit every other tool acts on: doctor,
-            tags and alert filters all key off these names, so getting the
-            inventory right scopes everything downstream correctly.</span
+            ><strong>Why it matters:</strong> every tool below uses the same
+            server&nbsp;→&nbsp;Monitor connection, so Status is your one cheap
+            check that the wiring is right: green means the rest can run. The
+            groups it loads are the unit every other tool acts on. Doctor, tags,
+            and alert filters all key off these names, so getting the inventory
+            right scopes everything downstream.</span
           ></span
         ></h2>
         <p class="tool-tag">
           <code>monitor-dashboard</code> +
           <code>@rgm-power-tools/core</code>
           <span
-            >— the web UI &amp; shared Monitor client every tool below runs
+            >The web UI and shared Monitor client that every tool below runs
             on.</span
           >
           <a href="https://github.com/dialgforgsu/RGM-Power-Tools/tree/main/packages/server"
@@ -334,9 +334,9 @@
           >
         </p>
         <dl id="status-body">
-          <div><dt>Monitor URL</dt><dd id="st-url">—</dd></div>
-          <div><dt>Token</dt><dd id="st-token">—</dd></div>
-          <div><dt>Working dir</dt><dd id="st-workdir">—</dd></div>
+          <div><dt>Monitor URL</dt><dd id="st-url">Not loaded</dd></div>
+          <div><dt>Token</dt><dd id="st-token">Not loaded</dd></div>
+          <div><dt>Working dir</dt><dd id="st-workdir">Not loaded</dd></div>
         </dl>
         <button id="refresh-btn" type="button">Refresh</button>
 
@@ -355,19 +355,18 @@
         <h2>Tags<span class="info" tabindex="0" role="note" aria-label="Logic & why">i
           <span class="info-tip"
             ><strong>Why it matters:</strong> Monitor has no native metadata,
-            yet you constantly want to act on "everything
-            <code>criticality=high</code>" or "owned by team X". Tags are that
-            overlay (owner, business unit, criticality) — and they
-            become the filter keys the doctor and alert-config tools rely
-            on. Because a write changes source-of-truth config, you sync dry-run
-            first to preview the delta, then "Sync &amp; write" to persist
-            it.</span
+            but you often want to act on "everything
+            <code>criticality=high</code>" or "owned by team X". Tags add that
+            overlay (owner, business unit, criticality), and they become the
+            filter keys the doctor and alert-config tools rely on. Because
+            writing changes source-of-truth config, you sync as a dry run first
+            to preview the delta, then "Sync &amp; write" to save it.</span
           ></span
         ></h2>
         <p class="tool-tag">
           <code>monitor-tagger</code>
           <span
-            >— a metadata overlay (owner, business unit, criticality) on your
+            >A metadata overlay (owner, business unit, criticality) on your
             groups. These tags become filter keys every tool can use.</span
           >
           <a href="https://github.com/dialgforgsu/RGM-Power-Tools/tree/main/packages/tagger"
@@ -379,17 +378,17 @@
           <span class="info" tabindex="0" role="note" aria-label="What this does">i
             <span class="info-tip"
               ><strong>Load tags.</strong> Reads <code>monitor-tags.yaml</code>
-              and renders it as a matrix — one row per group, one column per tag
+              and renders it as a matrix: one row per group, one column per tag
               key. <strong>Why:</strong> it's the read-only view of the overlay,
-              so you can see exactly which groups carry which metadata before any
-              tool filters on it.</span
+              so you can see which groups carry which metadata before any tool
+              filters on it.</span
             ></span
           >
           <button id="tags-sync-btn" type="button">Sync from Monitor (dry run)</button>
           <span class="info" tabindex="0" role="note" aria-label="What this does">i
             <span class="info-tip"
               ><strong>Sync from Monitor (dry run).</strong> Compares the live
-              Monitor group list against the overlay and previews the delta —
+              Monitor group list against the overlay and previews the delta:
               groups that would be <em>added</em> (live but untagged) or flagged
               <em>missing</em> (tagged but no longer live).
               <strong>Why dry run:</strong> nothing is written, so you see the
@@ -402,10 +401,10 @@
           <span class="info" tabindex="0" role="note" aria-label="What this does">i
             <span class="info-tip"
               ><strong>Sync &amp; write.</strong> The same reconciliation, but it
-              persists new group stubs back to <code>monitor-tags.yaml</code>.
+              saves new group stubs back to <code>monitor-tags.yaml</code>.
               <strong>Why it's flagged:</strong> it edits source-of-truth config
-              on disk — destructive enough to confirm — after which Load tags
-              shows the newly added groups ready to fill in.</span
+              on disk, which is destructive enough to confirm. Afterward, Load
+              tags shows the newly added groups, ready to fill in.</span
             ></span
           >
         </div>
@@ -414,7 +413,7 @@
 
       <!--
         Annotate and Log are stacked in one grid column: a single grid item
-        (.card-stack) holding two separate, smaller cards — Annotate on top,
+        (.card-stack) holding two separate, smaller cards: Annotate on top,
         Log beneath. Each card stays independently collapsible; the stack moves
         as one unit when dragged.
       -->
@@ -434,9 +433,9 @@
           <p class="tool-tag">
             <code>monitor-annotate</code>
             <span
-              >— stamps "what changed?" onto the Monitor timeline. Try it: add a
-              note below, then re-generate the post-mortem in the next section —
-              it appears in the timeline.</span
+              >Stamps "what changed?" onto the Monitor timeline. Try it: add a
+              note below, then regenerate the post-mortem in the next section,
+              and it appears in the timeline.</span
             >
             <a href="https://github.com/dialgforgsu/RGM-Power-Tools/tree/main/packages/annotate"
               >docs ↗</a
@@ -459,8 +458,9 @@
               ><strong>Why it matters:</strong> these tools make real changes to
               Monitor, so you want proof of what ran and what came back. The Log
               is an append-only, timestamped audit trail of every action and its
-              result or error — there at a glance, so you're never guessing
-              whether something took effect, no browser console required.</span
+              result or error. It's there at a glance, so you're never guessing
+              whether something took effect, with no browser console
+              required.</span
             ></span
           ></h2>
           <pre id="log" class="log"></pre>
@@ -471,19 +471,19 @@
         <h2>Incident replay (post-mortem)<span class="info" tabindex="0" role="note" aria-label="Logic & why">i
           <span class="info-tip"
             ><strong>Why it matters:</strong> the worst time to reconstruct an
-            incident is right after one — memories are fuzzy and the clock is
-            ticking. Replay does the evidence-gathering for you: give it a window
-            (last <code>2h</code>, or an explicit from/to) and it pulls the
-            alerts, slow queries, backups and annotations into a markdown
-            post-mortem that's ~80% written before you type a word. Pairs with
-            Annotate — notes you added show up in the timeline here.</span
+            incident is right after one, when memories are fuzzy and the clock is
+            ticking. Replay gathers the evidence for you: give it a window (last
+            <code>2h</code>, or an explicit from/to) and it pulls the alerts,
+            slow queries, backups, and annotations into a markdown post-mortem
+            that's about 80% written before you type a word. It pairs with
+            Annotate: notes you added show up in the timeline here.</span
           ></span
         ></h2>
         <p class="tool-tag">
           <code>monitor-replay</code>
           <span
-            >— turns an incident window into a pre-filled markdown post-mortem:
-            timeline, alerts, slow queries, backups and an analysis
+            >Turns an incident window into a pre-filled markdown post-mortem:
+            timeline, alerts, slow queries, backups, and an analysis
             scaffold.</span
           >
           <a href="https://github.com/dialgforgsu/RGM-Power-Tools/tree/main/packages/replay"
@@ -508,19 +508,19 @@
         <h2>Health check (doctor)<span class="info" tabindex="0" role="note" aria-label="Logic & why">i
           <span class="info-tip"
             ><strong>Why it matters:</strong> monitoring misconfig is invisible
-            until the night it bites — the alert that paged nobody, the server
+            until the night it bites: the alert that paged nobody, the server
             that quietly stopped reporting. Doctor surfaces those latent gaps
             <em>before</em> they cost you an outage: silent servers, alerts
-            routed nowhere, stale metrics, decommissioned-but-licensed servers —
-            each graded error / warning / info, the way <code>npm audit</code>
-            does for dependencies.</span
+            routed nowhere, stale metrics, and decommissioned-but-licensed
+            servers. Each is graded error, warning, or info, the way
+            <code>npm audit</code> does for dependencies.</span
           ></span
         ></h2>
         <p class="tool-tag">
           <code>monitor-doctor</code>
           <span
-            >— "npm audit for Monitor": lints your install for silent servers,
-            alerts that page nobody, stale metrics and decommissioned servers
+            >"npm audit for Monitor": lints your install for silent servers,
+            alerts that page nobody, stale metrics, and decommissioned servers
             still holding licenses.</span
           >
           <a href="https://github.com/dialgforgsu/RGM-Power-Tools/tree/main/packages/doctor"
@@ -541,23 +541,23 @@
       </section>
 
       <section class="card">
-        <h2>Alert config — plan &amp; apply<span class="info" tabindex="0" role="note" aria-label="Logic & why">i
+        <h2>Alert config: plan &amp; apply<span class="info" tabindex="0" role="note" aria-label="Logic & why">i
           <span class="info-tip"
             ><strong>Why it matters:</strong> alert settings clicked into a GUI
-            drift over time and can't be reviewed or rolled back — nobody knows
+            drift over time and can't be reviewed or rolled back, so nobody knows
             who changed what threshold, or why. Treating them as
-            version-controlled YAML fixes that: "Show plan" previews the diff vs
-            live, "Apply" only mutates Monitor on confirm, and tag filters cap
-            the blast radius. Dry-run-by-default keeps a fat-fingered mass edit
-            from going live.</span
+            version-controlled YAML fixes that: "Show plan" previews the diff
+            against live, "Apply" only changes Monitor on confirm, and tag
+            filters cap the blast radius. Dry-run-by-default stops a fat-fingered
+            mass edit from going live.</span
           ></span
         ></h2>
         <p class="tool-tag">
           <code>monitor-config</code>
           <span
-            >— "Terraform for Monitor alerts": alert settings as
-            version-controlled YAML. Shows the diff vs live, then applies it
-            (dry-run until confirmed). Apply once and the next plan is
+            >"Terraform for Monitor alerts": alert settings as
+            version-controlled YAML. Shows the diff against live, then applies it
+            (dry run until confirmed). Apply once and the next plan is
             clean.</span
           >
           <a href="https://github.com/dialgforgsu/RGM-Power-Tools/tree/main/packages/alert-config"
@@ -589,7 +589,7 @@
       Demo-only: arrange the cards as a draggable 3-column board. Each card
       gets a grip handle; drag it to reorder. The chosen order is remembered
       in localStorage so it survives a reload. None of this touches the real
-      dashboard assets — it only rearranges DOM nodes the app already wired up.
+      dashboard assets; it only rearranges DOM nodes the app already wired up.
     -->
     <script>
       (function () {
@@ -607,8 +607,8 @@
             el.matches('.card, .card-stack'),
           );
 
-        // Stable key per card from its heading's leading text node only —
-        // NOT h2.textContent, which would also slurp the info button's "i" and
+        // Stable key per card from its heading's leading text node only, not
+        // h2.textContent, which would also slurp the info button's "i" and
         // its whole tooltip. e.g. "Health check (doctor)" → "health-check-doctor".
         const keyOf = (card) => {
           const h = card.querySelector('h2');
@@ -653,7 +653,7 @@
           try {
             localStorage.setItem(ORDER_KEY, JSON.stringify(order));
           } catch {
-            /* storage unavailable — order just won't persist */
+            /* storage unavailable, so order just won't persist */
           }
         };
 
@@ -670,7 +670,7 @@
           try {
             localStorage.setItem(COLLAPSE_KEY, JSON.stringify([...collapsed]));
           } catch {
-            /* storage unavailable — collapse state just won't persist */
+            /* storage unavailable, so collapse state just won't persist */
           }
         };
 
@@ -760,7 +760,7 @@
         });
 
         // Decide insert position from where the pointer is relative to the
-        // nearest tile's centre — works for a 2-D grid, not just a column.
+        // nearest tile's centre, which works for a 2-D grid, not just a column.
         const placeRelativeTo = (x, y) => {
           let closest = null;
           let best = Infinity;
