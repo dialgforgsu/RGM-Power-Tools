@@ -75,6 +75,8 @@
         font-style: italic;
         font-weight: 700;
         line-height: 1;
+        text-transform: none;
+        letter-spacing: normal;
         color: var(--muted);
         background: #0d1117;
         cursor: help;
@@ -194,7 +196,8 @@
           color 0.12s ease,
           background 0.12s ease;
       }
-      .card:hover .drag-handle {
+      .card:hover .drag-handle,
+      .card-stack:hover .drag-handle {
         opacity: 1;
       }
       .drag-handle:hover {
@@ -204,16 +207,47 @@
       .drag-handle:active {
         cursor: grabbing;
       }
-      .card.dragging {
+      .card.dragging,
+      .card-stack.dragging {
         opacity: 0.45;
         outline: 2px dashed var(--accent);
         outline-offset: -2px;
       }
-      .card.drop-before {
+      .card.drop-before,
+      .card-stack.drop-before {
         box-shadow: -4px 0 0 var(--accent);
       }
-      .card.drop-after {
+      .card.drop-after,
+      .card-stack.drop-after {
         box-shadow: 4px 0 0 var(--accent);
+      }
+
+      /* --- Collapsible sections ------------------------------------------ */
+      /* Click a card's heading to fold/unfold it. A chevron shows the state;
+         the info "i" inside the heading keeps working because the toggle
+         handler ignores clicks that land on it. Demo-only — none of this
+         touches the real dashboard assets. */
+      .card > h2 {
+        cursor: pointer;
+      }
+      .card > h2 .chevron {
+        display: inline-block;
+        width: 0.7em;
+        margin-right: 0.45rem;
+        color: var(--muted);
+        font-size: 0.85em;
+        transition: transform 0.15s ease;
+      }
+      .card.collapsed > h2 {
+        margin-bottom: 0;
+      }
+      .card.collapsed > h2 .chevron {
+        transform: rotate(-90deg);
+      }
+      /* Folded: the card is just its title bar — hide everything except the
+         heading and the drag grip. */
+      .card.collapsed > *:not(h2):not(.drag-handle) {
+        display: none;
       }
 
       /* monitor-tagger's tag matrix uses a fixed table layout so its columns
@@ -236,6 +270,22 @@
         letter-spacing: 0.04em;
         color: var(--muted);
         margin: 1.1rem 0 0.5rem;
+      }
+      /* A stack of two cards that share one grid column — Annotate on top, Log
+         beneath. It's a single grid item, so it occupies one column slot and
+         drags as one unit; the gap matches the board's own grid gap. */
+      .card-stack {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        align-self: start;
+        position: relative;
+      }
+      /* Inside the stack each card grows to its content; the Log scrolls within
+         a capped height so the stack stays compact as entries stream in. */
+      #annotate-log-stack .log {
+        max-height: 14rem;
+        overflow-y: auto;
       }
     </style>
   </head>
@@ -362,39 +412,60 @@
         <div id="tags-area"><p class="muted">Load to view.</p></div>
       </section>
 
-      <section class="card">
-        <h2>Annotate timeline<span class="info" tabindex="0" role="note" aria-label="Logic & why">i
-          <span class="info-tip"
-            ><strong>Why it matters:</strong> when you replay an incident later,
-            the hardest question is "what did we change right before it broke?"
-            Annotations put that human context ("deployed web v1.2.3") on the
-            same timeline as the metrics, so <em>cause</em> sits right next to
-            <em>effect</em> instead of living in someone's memory. These are
-            manual notes; automated deploy/CI notes arrive via the separate
-            webhook receiver.</span
-          ></span
-        ></h2>
-        <p class="tool-tag">
-          <code>monitor-annotate</code>
-          <span
-            >— stamps "what changed?" onto the Monitor timeline. Try it: add a
-            note below, then re-generate the post-mortem in the next section — it
-            appears in the timeline.</span
-          >
-          <a href="https://github.com/dialgforgsu/RGM-Power-Tools/tree/main/packages/annotate"
-            >docs ↗</a
-          >
-        </p>
-        <div class="row">
-          <input id="annot-text" type="text" placeholder="What changed? (e.g. Deployed web v1.2.3)" />
-          <input id="annot-object" type="text" placeholder="object (optional)" />
-          <button id="annot-btn" type="button">Add annotation</button>
-        </div>
-        <p class="muted">
-          Automated deploy/CI annotations come from the separate
-          <code>monitor-annotate</code> webhook receiver.
-        </p>
-      </section>
+      <!--
+        Annotate and Log are stacked in one grid column: a single grid item
+        (.card-stack) holding two separate, smaller cards — Annotate on top,
+        Log beneath. Each card stays independently collapsible; the stack moves
+        as one unit when dragged.
+      -->
+      <div class="card-stack" id="annotate-log-stack">
+        <section class="card">
+          <h2>Annotate timeline<span class="info" tabindex="0" role="note" aria-label="Logic & why">i
+            <span class="info-tip"
+              ><strong>Why it matters:</strong> when you replay an incident
+              later, the hardest question is "what did we change right before it
+              broke?" Annotations put that human context ("deployed web v1.2.3")
+              on the same timeline as the metrics, so <em>cause</em> sits right
+              next to <em>effect</em> instead of living in someone's memory.
+              These are manual notes; automated deploy/CI notes arrive via the
+              separate webhook receiver.</span
+            ></span
+          ></h2>
+          <p class="tool-tag">
+            <code>monitor-annotate</code>
+            <span
+              >— stamps "what changed?" onto the Monitor timeline. Try it: add a
+              note below, then re-generate the post-mortem in the next section —
+              it appears in the timeline.</span
+            >
+            <a href="https://github.com/dialgforgsu/RGM-Power-Tools/tree/main/packages/annotate"
+              >docs ↗</a
+            >
+          </p>
+          <div class="row">
+            <input id="annot-text" type="text" placeholder="What changed? (e.g. Deployed web v1.2.3)" />
+            <input id="annot-object" type="text" placeholder="object (optional)" />
+            <button id="annot-btn" type="button">Add annotation</button>
+          </div>
+          <p class="muted">
+            Automated deploy/CI annotations come from the separate
+            <code>monitor-annotate</code> webhook receiver.
+          </p>
+        </section>
+
+        <section class="card">
+          <h2>Log<span class="info" tabindex="0" role="note" aria-label="Logic & why">i
+            <span class="info-tip"
+              ><strong>Why it matters:</strong> these tools make real changes to
+              Monitor, so you want proof of what ran and what came back. The Log
+              is an append-only, timestamped audit trail of every action and its
+              result or error — there at a glance, so you're never guessing
+              whether something took effect, no browser console required.</span
+            ></span
+          ></h2>
+          <pre id="log" class="log"></pre>
+        </section>
+      </div>
 
       <section class="card">
         <h2>Incident replay (post-mortem)<span class="info" tabindex="0" role="note" aria-label="Logic & why">i
@@ -508,19 +579,6 @@
         </div>
         <div id="plan-area"><p class="muted">Show the plan to see pending changes.</p></div>
       </section>
-
-      <section class="card">
-        <h2>Log<span class="info" tabindex="0" role="note" aria-label="Logic & why">i
-          <span class="info-tip"
-            ><strong>Why it matters:</strong> these tools make real changes to
-            Monitor, so you want proof of what ran and what came back. The Log is
-            an append-only, timestamped audit trail of every action and its
-            result or error — there at a glance, so you're never guessing
-            whether something took effect, no browser console required.</span
-          ></span
-        ></h2>
-        <pre id="log" class="log"></pre>
-      </section>
     </main>
 
     <!-- Order matters: mock-monitor.js must patch fetch before app.js runs. -->
@@ -536,10 +594,18 @@
     <script>
       (function () {
         'use strict';
-        const ORDER_KEY = 'rgm-demo-card-order-v2';
+        const ORDER_KEY = 'rgm-demo-card-order-v3';
+        const COLLAPSE_KEY = 'rgm-demo-collapsed-v1';
         const board = document.querySelector('main');
         if (!board) return;
+        // Every card is collapsible (including the two inside the stack)...
         const cards = Array.from(board.querySelectorAll('.card'));
+        // ...but reordering acts on top-level "tiles": a standalone card or a
+        // .card-stack, which moves as one unit so its inner cards stay stacked.
+        const tiles = () =>
+          Array.from(board.children).filter((el) =>
+            el.matches('.card, .card-stack'),
+          );
 
         // Stable key per card from its heading's leading text node only —
         // NOT h2.textContent, which would also slurp the info button's "i" and
@@ -558,15 +624,24 @@
             .replace(/^-|-$/g, '');
         };
         cards.forEach((c) => c.setAttribute('data-key', keyOf(c)));
+        // A stack isn't a .card, so give it a key from its id (its inner cards
+        // already got theirs above, for collapse persistence).
+        tiles().forEach((t) => {
+          if (!t.hasAttribute('data-key')) {
+            t.setAttribute('data-key', t.id || keyOf(t));
+          }
+        });
 
-        // Restore a saved order, appending any cards not in it (e.g. new ones).
+        // Restore a saved order, leaving any tiles not in it where they are.
         try {
           const saved = JSON.parse(localStorage.getItem(ORDER_KEY) || '[]');
           if (Array.isArray(saved) && saved.length) {
-            const byKey = new Map(cards.map((c) => [c.getAttribute('data-key'), c]));
+            const byKey = new Map(
+              tiles().map((t) => [t.getAttribute('data-key'), t]),
+            );
             saved.forEach((k) => {
-              const c = byKey.get(k);
-              if (c) board.appendChild(c);
+              const t = byKey.get(k);
+              if (t) board.appendChild(t);
             });
           }
         } catch {
@@ -574,13 +649,28 @@
         }
 
         const saveOrder = () => {
-          const order = Array.from(board.querySelectorAll('.card')).map((c) =>
-            c.getAttribute('data-key'),
-          );
+          const order = tiles().map((t) => t.getAttribute('data-key'));
           try {
             localStorage.setItem(ORDER_KEY, JSON.stringify(order));
           } catch {
             /* storage unavailable — order just won't persist */
+          }
+        };
+
+        // Which cards are folded, by data-key, persisted across reloads.
+        let collapsed;
+        try {
+          collapsed = new Set(
+            JSON.parse(localStorage.getItem(COLLAPSE_KEY) || '[]'),
+          );
+        } catch {
+          collapsed = new Set();
+        }
+        const saveCollapsed = () => {
+          try {
+            localStorage.setItem(COLLAPSE_KEY, JSON.stringify([...collapsed]));
+          } catch {
+            /* storage unavailable — collapse state just won't persist */
           }
         };
 
@@ -592,9 +682,56 @@
             .forEach((c) => c.classList.remove('drop-before', 'drop-after'));
         };
 
-        // Add a grip handle to each card and wire drag from it only, so the
-        // buttons/inputs inside the card keep working normally.
+        // Make each card's heading a fold toggle (chevron + click/keys). This
+        // covers the two cards inside the stack as well. data-key was assigned
+        // above, so inserting the chevron now can't affect keyOf (which reads
+        // the heading's leading *text* node).
         cards.forEach((card) => {
+          const h2 = card.querySelector('h2');
+          const key = card.getAttribute('data-key');
+          if (!h2) return;
+
+          const chevron = document.createElement('span');
+          chevron.className = 'chevron';
+          chevron.setAttribute('aria-hidden', 'true');
+          chevron.textContent = '▾';
+          h2.insertBefore(chevron, h2.firstChild);
+          h2.setAttribute('role', 'button');
+          h2.setAttribute('tabindex', '0');
+
+          if (collapsed.has(key)) card.classList.add('collapsed');
+          const syncAria = () =>
+            h2.setAttribute(
+              'aria-expanded',
+              String(!card.classList.contains('collapsed')),
+            );
+          syncAria();
+
+          const toggle = () => {
+            const isCollapsed = card.classList.toggle('collapsed');
+            if (isCollapsed) collapsed.add(key);
+            else collapsed.delete(key);
+            syncAria();
+            saveCollapsed();
+          };
+          h2.addEventListener('click', (e) => {
+            // Let the info "i" button (and any links) work without folding.
+            if (e.target.closest('.info, a')) return;
+            toggle();
+          });
+          h2.addEventListener('keydown', (e) => {
+            if (e.target.closest('.info, a')) return;
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              toggle();
+            }
+          });
+        });
+
+        // Add a grip handle to each tile and drag from it only, so the
+        // buttons/inputs inside stay usable. A .card-stack drags as one unit,
+        // keeping Annotate above Log.
+        tiles().forEach((tile) => {
           const handle = document.createElement('span');
           handle.className = 'drag-handle';
           handle.setAttribute('draggable', 'true');
@@ -603,16 +740,16 @@
           handle.setAttribute('aria-label', 'Drag to reorder this section');
           handle.title = 'Drag to reorder';
           handle.textContent = '☰'; // ☰
-          card.appendChild(handle);
+          tile.appendChild(handle);
 
           handle.addEventListener('dragstart', (e) => {
-            dragged = card;
-            card.classList.add('dragging');
+            dragged = tile;
+            tile.classList.add('dragging');
             e.dataTransfer.effectAllowed = 'move';
-            e.dataTransfer.setData('text/plain', card.getAttribute('data-key'));
-            // Use the whole card as the drag image, not just the grip.
+            e.dataTransfer.setData('text/plain', tile.getAttribute('data-key'));
+            // Use the whole tile as the drag image, not just the grip.
             if (e.dataTransfer.setDragImage) {
-              e.dataTransfer.setDragImage(card, 20, 20);
+              e.dataTransfer.setDragImage(tile, 20, 20);
             }
           });
           handle.addEventListener('dragend', () => {
@@ -623,18 +760,19 @@
         });
 
         // Decide insert position from where the pointer is relative to the
-        // nearest card's centre — works for a 2-D grid, not just a column.
+        // nearest tile's centre — works for a 2-D grid, not just a column.
         const placeRelativeTo = (x, y) => {
           let closest = null;
           let best = Infinity;
-          board.querySelectorAll('.card:not(.dragging)').forEach((c) => {
-            const b = c.getBoundingClientRect();
+          tiles().forEach((t) => {
+            if (t.classList.contains('dragging')) return;
+            const b = t.getBoundingClientRect();
             const dx = x - (b.left + b.width / 2);
             const dy = y - (b.top + b.height / 2);
             const dist = Math.hypot(dx, dy);
             if (dist < best) {
               best = dist;
-              closest = { card: c, dx, dy, halfH: b.height / 2 };
+              closest = { tile: t, dx, dy, halfH: b.height / 2 };
             }
           });
           return closest;
@@ -646,26 +784,26 @@
           e.dataTransfer.dropEffect = 'move';
           const target = placeRelativeTo(e.clientX, e.clientY);
           clearMarkers();
-          if (!target || target.card === dragged) return;
-          // Before if the pointer is above the card, or left of centre within
+          if (!target || target.tile === dragged) return;
+          // Before if the pointer is above the tile, or left of centre within
           // roughly the same row; otherwise after.
           const before =
             target.dy < -target.halfH ||
             (Math.abs(target.dy) <= target.halfH && target.dx < 0);
-          target.card.classList.add(before ? 'drop-before' : 'drop-after');
+          target.tile.classList.add(before ? 'drop-before' : 'drop-after');
         });
 
         board.addEventListener('drop', (e) => {
           if (!dragged) return;
           e.preventDefault();
           const target = placeRelativeTo(e.clientX, e.clientY);
-          if (target && target.card !== dragged) {
+          if (target && target.tile !== dragged) {
             const before =
               target.dy < -target.halfH ||
               (Math.abs(target.dy) <= target.halfH && target.dx < 0);
             board.insertBefore(
               dragged,
-              before ? target.card : target.card.nextSibling,
+              before ? target.tile : target.tile.nextSibling,
             );
           }
           clearMarkers();
