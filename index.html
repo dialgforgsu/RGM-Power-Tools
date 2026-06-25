@@ -231,6 +231,33 @@
       #groups-table th {
         white-space: nowrap;
       }
+
+      /* Number inputs (cost per slot, onboarding count) — match the dashboard's
+         text inputs but sized to their short numeric values. */
+      input[type='number'] {
+        background: #0d1117;
+        color: var(--text);
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        padding: 0.35rem 0.5rem;
+        width: 6rem;
+      }
+
+      /* A card that spans the full board width. monitor-tagger uses this so its
+         wide tag matrix fits without a horizontal scroll bar. */
+      .card--wide {
+        grid-column: 1 / -1;
+      }
+
+      /* Sub-heading inside a card (e.g. "Groups" under the merged Status card). */
+      .card .subhead {
+        font-size: 0.8rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        color: var(--muted);
+        margin: 1.1rem 0 0.5rem;
+      }
     </style>
   </head>
   <body>
@@ -256,14 +283,14 @@
 
     <main>
       <section class="card" id="status-card">
-        <h2>Status<span class="info" tabindex="0" role="note" aria-label="Logic & why">i
+        <h2>Status &amp; groups<span class="info" tabindex="0" role="note" aria-label="Logic & why">i
           <span class="info-tip"
             ><strong>Why it matters:</strong> every tool below rides the same
-            server&nbsp;→&nbsp;Monitor connection, so this is your one cheap "is
-            the wiring right?" check before you trust anything else on the page.
-            Green here means the rest can run. It pings <code>/api/status</code>
-            and echoes the base URL, a redacted token hint and the working
-            dir.</span
+            server&nbsp;→&nbsp;Monitor connection, so Status is your one cheap "is
+            the wiring right?" check — green means the rest can run. And the
+            groups it loads are the unit every other tool acts on: cost, doctor,
+            tags and alert filters all key off these names, so getting the
+            inventory right scopes everything downstream correctly.</span
           ></span
         ></h2>
         <p class="tool-tag">
@@ -283,26 +310,8 @@
           <div><dt>Working dir</dt><dd id="st-workdir">—</dd></div>
         </dl>
         <button id="refresh-btn" type="button">Refresh</button>
-      </section>
 
-      <section class="card">
-        <h2>Groups<span class="info" tabindex="0" role="note" aria-label="Logic & why">i
-          <span class="info-tip"
-            ><strong>Why it matters:</strong> groups are the unit every other
-            tool acts on — cost, doctor, tags and alert filters all key off these
-            names. Get the inventory wrong and every downstream result is scoped
-            wrong too. Loading it confirms connectivity and hands you the exact
-            names you'll filter on. It reads SQL Monitor's group tree and the
-            server count under each.</span
-          ></span
-        ></h2>
-        <p class="tool-tag">
-          <code>core</code>
-          <span
-            >— the live Monitor groups (and server counts) the suite operates
-            on.</span
-          >
-        </p>
+        <h3 class="subhead">Groups</h3>
         <table id="groups-table">
           <thead>
             <tr><th>Group</th><th>Servers</th></tr>
@@ -313,7 +322,7 @@
         </table>
       </section>
 
-      <section class="card">
+      <section class="card card--wide">
         <h2>Tags<span class="info" tabindex="0" role="note" aria-label="Logic & why">i
           <span class="info-tip"
             ><strong>Why it matters:</strong> Monitor has no native metadata,
@@ -339,10 +348,38 @@
         </p>
         <div class="row">
           <button id="tags-load-btn" type="button">Load tags</button>
+          <span class="info" tabindex="0" role="note" aria-label="What this does">i
+            <span class="info-tip"
+              ><strong>Load tags.</strong> Reads <code>monitor-tags.yaml</code>
+              and renders it as a matrix — one row per group, one column per tag
+              key. <strong>Why:</strong> it's the read-only view of the overlay,
+              so you can see exactly which groups carry which metadata before any
+              tool filters on it.</span
+            ></span
+          >
           <button id="tags-sync-btn" type="button">Sync from Monitor (dry run)</button>
+          <span class="info" tabindex="0" role="note" aria-label="What this does">i
+            <span class="info-tip"
+              ><strong>Sync from Monitor (dry run).</strong> Compares the live
+              Monitor group list against the overlay and previews the delta —
+              groups that would be <em>added</em> (live but untagged) or flagged
+              <em>missing</em> (tagged but no longer live).
+              <strong>Why dry run:</strong> nothing is written, so you see the
+              reconciliation before committing it.</span
+            ></span
+          >
           <button id="tags-sync-write-btn" type="button" class="danger">
             Sync &amp; write
           </button>
+          <span class="info" tabindex="0" role="note" aria-label="What this does">i
+            <span class="info-tip"
+              ><strong>Sync &amp; write.</strong> The same reconciliation, but it
+              persists new group stubs back to <code>monitor-tags.yaml</code>.
+              <strong>Why it's flagged:</strong> it edits source-of-truth config
+              on disk — destructive enough to confirm — after which Load tags
+              shows the newly added groups ready to fill in.</span
+            ></span
+          >
         </div>
         <div id="tags-area"><p class="muted">Load to view.</p></div>
       </section>
@@ -441,6 +478,10 @@
         </p>
         <div class="row">
           <button id="cost-btn" type="button">Run cost audit</button>
+          <label
+            >Cost per slot (USD)
+            <input id="cost-per-slot" type="number" min="0" step="50" value="600" />
+          </label>
           <label
             >Project onboarding
             <input id="cost-add" type="number" min="1" placeholder="# servers" value="30" />

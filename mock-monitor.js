@@ -937,6 +937,24 @@
         : Promise.resolve();
     const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 
+    // Let the user retune the license price. monitor-cost derives everything
+    // (total license cost, reclaimable waste, onboarding spend) from the
+    // per-slot rate, so editing this field and re-auditing reflows every
+    // number. app.js is untouched — we just update the simulated rate and
+    // re-run its own cost action.
+    const slotInput = document.getElementById('cost-per-slot');
+    if (slotInput) {
+      slotInput.value = String(COST.costPerSlot);
+      slotInput.addEventListener('change', function () {
+        const rate = Number(slotInput.value);
+        if (!Number.isFinite(rate) || rate < 0) return;
+        COST.costPerSlot = rate;
+        const addEl = document.getElementById('cost-add');
+        const n = addEl ? parseInt(addEl.value, 10) : NaN;
+        call('runCost', Number.isInteger(n) && n > 0 ? n : undefined);
+      });
+    }
+
     // Run each tool one after another with a small gap so the cascade is
     // visible. Order mirrors the on-page sections, top to bottom.
     (async function showEverything() {
