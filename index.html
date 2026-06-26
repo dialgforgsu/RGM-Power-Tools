@@ -347,6 +347,28 @@
         background: transparent;
         padding: 0;
       }
+
+      /* --- Independently resizable cards ---------------------------------- */
+      /* Each card carries a native resize grip at its bottom-right corner.
+         `resize` needs a non-visible overflow, so the card clips — which would
+         hide the info tooltips, so the script below lifts each tooltip to
+         position:fixed so it escapes the clip. max-width:100% caps a card at its
+         grid track, so widening can never overlap the neighbouring column;
+         height grows freely. */
+      .card {
+        overflow: auto;
+        resize: both;
+        min-width: 12rem;
+        min-height: 4rem;
+        max-width: 100%;
+      }
+      /* A folded card is just its title bar — nothing to resize, and any saved
+         height is dropped so it collapses flush. */
+      .card.collapsed {
+        resize: none;
+        height: auto !important;
+        min-height: 0;
+      }
     </style>
   </head>
   <body>
@@ -924,6 +946,81 @@
           }
           clearMarkers();
           saveOrder();
+        });
+      })();
+    </script>
+
+    <!--
+      Demo-only: make each card independently resizable (native bottom-right
+      grip, via CSS above) and (a) keep the info tooltips visible despite the
+      card's clip, (b) remember each card's size across reloads. Runs after the
+      reorder script so every card already carries its stable data-key.
+    -->
+    <script>
+      (function () {
+        'use strict';
+        const SIZE_KEY = 'rgm-demo-card-size-v1';
+        const board = document.querySelector('main');
+        if (!board) return;
+        const cards = Array.from(board.querySelectorAll('.card'));
+
+        // (a) The card needs overflow:auto for the resize grip, which clips its
+        // absolutely-positioned info tooltips. Lift each tooltip to
+        // position:fixed on show so it escapes the clip and tracks its icon.
+        document.querySelectorAll('.info').forEach((info) => {
+          const tip = info.querySelector('.info-tip');
+          if (!tip) return;
+          const place = () => {
+            const r = info.getBoundingClientRect();
+            tip.style.position = 'fixed';
+            tip.style.top = `${r.bottom + 9}px`;
+            if (tip.classList.contains('info-tip--right')) {
+              tip.style.left = 'auto';
+              tip.style.right = `${window.innerWidth - r.right}px`;
+            } else {
+              tip.style.left = `${r.left}px`;
+              tip.style.right = 'auto';
+            }
+          };
+          info.addEventListener('mouseenter', place);
+          info.addEventListener('focusin', place);
+        });
+
+        // (b) Persist each card's size by its data-key. The native grip writes
+        // inline width/height; we restore those on load and save on resize end.
+        let sizes;
+        try {
+          sizes = JSON.parse(localStorage.getItem(SIZE_KEY) || '{}') || {};
+        } catch {
+          sizes = {};
+        }
+        const saveSizes = () => {
+          try {
+            localStorage.setItem(SIZE_KEY, JSON.stringify(sizes));
+          } catch {
+            /* storage unavailable, so sizes just won't persist */
+          }
+        };
+
+        cards.forEach((card) => {
+          const key = card.getAttribute('data-key');
+          if (!key) return;
+          const saved = sizes[key];
+          if (saved) {
+            if (saved.w) card.style.width = saved.w;
+            if (saved.h) card.style.height = saved.h;
+          }
+          // The grip sets inline width/height live; record the final values
+          // once the drag ends (pointerup anywhere — the grip releases there).
+          const remember = () => {
+            const w = card.style.width;
+            const h = card.style.height;
+            if (w || h) sizes[key] = { w, h };
+            else delete sizes[key];
+            saveSizes();
+          };
+          card.addEventListener('pointerup', remember);
+          card.addEventListener('mouseup', remember);
         });
       })();
     </script>
